@@ -1,36 +1,23 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "./components/layout/Navbar";
+import Dashboard from "./pages/Dashboard";
+import Tasks from "./pages/Tasks";
+import Journal from "./pages/Journal";
+import Calendar from "./pages/Calendar";
+
 export default function App() {
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div>
-          <h1>Elarion</h1>
-          <p>{today}</p>
-        </div>
-      </header>
+    <BrowserRouter>
+      <div className="app-shell">
+        <Navbar />
 
-      <main className="dashboard-main">
-        <section className="dashboard-card">
-          <h2>Tasks</h2>
-          <p>Your task system will go here.</p>
-        </section>
-
-        <section className="dashboard-card">
-          <h2>Journal</h2>
-          <p>Your journal system will go here.</p>
-        </section>
-
-        <section className="dashboard-card">
-          <h2>Calendar</h2>
-          <p>Your calendar system will go here.</p>
-        </section>
-      </main>
-    </div>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/journal" element={<Journal />} />
+          <Route path="/calendar" element={<Calendar />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
