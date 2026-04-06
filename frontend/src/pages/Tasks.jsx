@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import useTasks from "../hooks/useTasks";
 
 export default function Tasks() {
@@ -16,14 +17,29 @@ export default function Tasks() {
   } = useTasks();
 
   return (
-    <section className="feature-page">
-      <div className="feature-page-header">
+    <motion.section
+      className="feature-page"
+      initial={{ opacity: 0, y: 22 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <motion.div
+        className="feature-page-header"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, duration: 0.35 }}
+      >
         <span className="card-kicker">Workspace</span>
         <h1>Tasks</h1>
         <p>Manage your tasks with more focus, structure, and control.</p>
-      </div>
+      </motion.div>
 
-      <div className="tasks-page-shell">
+      <motion.div
+        className="tasks-page-shell"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.38 }}
+      >
         <div className="tasks-page-toolbar">
           <form className="task-form" onSubmit={handleAddTask}>
             <input
@@ -33,34 +49,45 @@ export default function Tasks() {
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
             />
-            <button className="task-add-btn" type="submit">
+            <motion.button
+              className="task-add-btn"
+              type="submit"
+              whileHover={{ y: -1, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+            >
               Add
-            </button>
+            </motion.button>
           </form>
 
           <div className="tasks-page-controls">
             <div className="tasks-filter-group">
-              <button
+              <motion.button
                 type="button"
                 className={filter === "all" ? "tasks-filter-btn active" : "tasks-filter-btn"}
                 onClick={() => setFilter("all")}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
               >
                 All
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 className={filter === "active" ? "tasks-filter-btn active" : "tasks-filter-btn"}
                 onClick={() => setFilter("active")}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
               >
                 Active
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 className={filter === "completed" ? "tasks-filter-btn active" : "tasks-filter-btn"}
                 onClick={() => setFilter("completed")}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
               >
                 Completed
-              </button>
+              </motion.button>
             </div>
 
             <div className="tasks-page-stats">
@@ -76,7 +103,13 @@ export default function Tasks() {
           ) : (
             <ul className="task-list">
               {filteredTasks.map((task) => (
-                <li className="task-item" key={task.id}>
+                <motion.li
+                  className="task-item"
+                  key={task.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22 }}
+                >
                   <label className="task-left">
                     <input
                       type="checkbox"
@@ -88,29 +121,33 @@ export default function Tasks() {
                     </span>
                   </label>
 
-                  <button
+                  <motion.button
                     className="task-delete-btn"
                     type="button"
                     onClick={() => handleDeleteTask(task.id)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     Delete
-                  </button>
-                </li>
+                  </motion.button>
+                </motion.li>
               ))}
             </ul>
           )}
 
           {completedCount > 0 && (
-            <button
+            <motion.button
               className="task-clear-btn"
               type="button"
               onClick={handleClearCompleted}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
             >
               Clear Completed
-            </button>
+            </motion.button>
           )}
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
