@@ -2,10 +2,14 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Journal from "./pages/Journal";
 import Calendar from "./pages/Calendar";
+import { TasksProvider } from "./context/TasksContext";
+import { JournalProvider } from "./context/JournalContext";
+import { CalendarProvider } from "./context/CalendarContext";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -19,7 +23,7 @@ function AnimatedRoutes() {
         exit={{ opacity: 0, scale: 0.985, y: -16 }}
         transition={{
           duration: 0.45,
-          ease: [0.22, 1, 0.36, 1], // smoother, more premium
+          ease: [0.22, 1, 0.36, 1],
         }}
       >
         <Routes location={location}>
@@ -37,36 +41,31 @@ export default function App() {
   useEffect(() => {
     function handleScroll() {
       const scrollY = window.scrollY;
-
-      document.documentElement.style.setProperty(
-        "--bg-shift-1",
-        `${scrollY * 0.08}px`
-      );
-
-      document.documentElement.style.setProperty(
-        "--bg-shift-2",
-        `${scrollY * 0.04}px`
-      );
+      document.documentElement.style.setProperty("--bg-shift-1", `${scrollY * 0.08}px`);
+      document.documentElement.style.setProperty("--bg-shift-2", `${scrollY * 0.04}px`);
     }
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <BrowserRouter>
-      <div className="app-shell">
-        <div className="bg-orb bg-orb-1" />
-        <div className="bg-orb bg-orb-2" />
-        <div className="bg-orb bg-orb-3" />
-
-        <Navbar />
-        <AnimatedRoutes />
-      </div>
+      <TasksProvider>
+        <JournalProvider>
+          <CalendarProvider>
+            <div className="app-shell">
+              <div className="bg-orb bg-orb-1" />
+              <div className="bg-orb bg-orb-2" />
+              <div className="bg-orb bg-orb-3" />
+              <Navbar />
+              <AnimatedRoutes />
+              <Footer />
+            </div>
+          </CalendarProvider>
+        </JournalProvider>
+      </TasksProvider>
     </BrowserRouter>
   );
 }

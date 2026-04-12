@@ -1,40 +1,37 @@
-import { motion } from "motion/react";
-import useJournal from "../hooks/useJournal";
+import { motion, AnimatePresence } from "motion/react";
+import { useJournalContext } from "../context/JournalContext";
+import PageShell from "../components/layout/PageShell";
+import SectionHeader from "../components/layout/SectionHeader";
+import JournalEntry from "../components/items/JournalEntry";
+import { tapAnim, hoverAnim } from "../utils/motion";
 
 export default function Journal() {
   const {
     entries,
+    filteredEntries,
+    searchQuery,
+    setSearchQuery,
     title,
     setTitle,
     content,
     setContent,
     selectedId,
     setSelectedId,
+    editingId,
+    startEditing,
+    stopEditing,
     selectedEntry,
     handleAddEntry,
     handleDeleteEntry,
-  } = useJournal();
+  } = useJournalContext();
 
   return (
-    <motion.section
-      className="feature-page"
-      initial={{ opacity: 0, y: 22 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <motion.div
-        className="feature-page-header"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.35 }}
-      >
-        <span className="card-kicker">Workspace</span>
-        <h1>Journal</h1>
-        <p>
-          Build thoughts, reflections, and notes in a space that can grow into
-          something deeper later.
-        </p>
-      </motion.div>
+    <PageShell>
+      <SectionHeader
+        kicker="Workspace"
+        title="Journal"
+        subtitle="Build thoughts, reflections, and notes in a space that can grow into something deeper later."
+      />
 
       <motion.div
         className="journal-page-shell"
@@ -48,34 +45,53 @@ export default function Journal() {
             <span>{entries.length}</span>
           </div>
 
+          <input
+            className="journal-search-input"
+            type="text"
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
           <div className="journal-note-list">
-            {entries.length === 0 ? (
-              <p className="journal-empty">No notes yet.</p>
-            ) : (
-              entries.map((entry) => (
-                <motion.button
-                  key={entry.id}
-                  type="button"
-                  className={
-                    selectedId === entry.id || (!selectedId && selectedEntry?.id === entry.id)
-                      ? "journal-note-item active"
-                      : "journal-note-item"
-                  }
-                  onClick={() => setSelectedId(entry.id)}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <strong>{entry.title}</strong>
-                  <span>{entry.createdAt}</span>
-                </motion.button>
-              ))
-            )}
+            <AnimatePresence>
+              {filteredEntries.length === 0 ? (
+                <p className="journal-sidebar-empty">
+                  {searchQuery ? "No notes match your search." : "No notes yet."}
+                </p>
+              ) : (
+                filteredEntries.map((entry) => (
+                  <motion.button
+                    key={entry.id}
+                    type="button"
+                    className={
+                      selectedId === entry.id || (!selectedId && selectedEntry?.id === entry.id)
+                        ? "journal-note-item active"
+                        : "journal-note-item"
+                    }
+                    onClick={() => setSelectedId(entry.id)}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -12, scale: 0.97 }}
+                    transition={{ duration: 0.2 }}
+                    {...hoverAnim}
+                    {...tapAnim}
+                  >
+                    <strong>{entry.title}</strong>
+                    {entry.content && (
+                      <p className="journal-note-preview">{entry.content}</p>
+                    )}
+                    <span>{entry.createdAt}</span>
+                  </motion.button>
+                ))
+              )}
+            </AnimatePresence>
           </div>
         </aside>
 
         <div className="journal-editor-wrap">
           <div className="journal-editor-card">
-            <h2>Create Note</h2>
+            <h2>{editingId ? "Edit Note" : "Create Note"}</h2>
 
             <form className="journal-page-form" onSubmit={handleAddEntry}>
               <input
@@ -94,52 +110,58 @@ export default function Journal() {
                 rows="10"
               />
 
-              <motion.button
-                className="journal-add-btn"
-                type="submit"
-                whileHover={{ y: -1, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Save Note
-              </motion.button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <motion.button
+                  className="journal-add-btn"
+                  type="submit"
+                  whileHover={{ y: -1, scale: 1.01 }}
+                  {...tapAnim}
+                >
+                  {editingId ? "Save Changes" : "Save Note"}
+                </motion.button>
+
+                {editingId && (
+                  <motion.button
+                    className="journal-cancel-btn"
+                    type="button"
+                    onClick={stopEditing}
+                    {...hoverAnim}
+                    {...tapAnim}
+                  >
+                    Cancel
+                  </motion.button>
+                )}
+              </div>
             </form>
           </div>
 
           <div className="journal-preview-card">
             <h2>Selected Note</h2>
 
-            {selectedEntry ? (
-              <motion.article
-                className="journal-entry journal-entry-full"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                <h3 className="journal-entry-title">{selectedEntry.title}</h3>
-                <p className="journal-entry-text">{selectedEntry.content}</p>
-
-                <div className="journal-entry-footer">
-                  <span className="journal-entry-date">
-                    {selectedEntry.createdAt}
-                  </span>
-
-                  <motion.button
-                    className="journal-delete-btn"
-                    type="button"
-                    onClick={() => handleDeleteEntry(selectedEntry.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Delete
-                  </motion.button>
-                </div>
-              </motion.article>
-            ) : (
-              <p className="journal-empty">Select or create a note.</p>
-            )}
+            <AnimatePresence mode="wait">
+              {selectedEntry ? (
+                <JournalEntry
+                  key={selectedEntry.id}
+                  entry={selectedEntry}
+                  onDelete={handleDeleteEntry}
+                  onEdit={startEditing}
+                  className="journal-entry journal-entry-full"
+                />
+              ) : (
+                <motion.p
+                  key="empty"
+                  className="journal-empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  Select or create a note.
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.div>
-    </motion.section>
+    </PageShell>
   );
 }

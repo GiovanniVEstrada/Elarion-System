@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { motion } from "motion/react";
-import useJournal from "../../hooks/useJournal";
+import { motion, AnimatePresence } from "motion/react";
+import { useJournalContext } from "../../context/JournalContext";
+import JournalEntry from "../../components/items/JournalEntry";
+import { tapAnim } from "../../utils/motion";
 
 export default function JournalCard() {
   const {
@@ -9,7 +11,7 @@ export default function JournalCard() {
     setContent,
     handleAddEntry,
     handleDeleteEntry,
-  } = useJournal();
+  } = useJournalContext();
 
   return (
     <motion.section
@@ -22,10 +24,7 @@ export default function JournalCard() {
           <span className="card-kicker">Reflection</span>
           <h2>Journal</h2>
         </div>
-
-        <Link to="/journal" className="card-link">
-          View All →
-        </Link>
+        <Link to="/journal" className="card-link">View All →</Link>
       </div>
 
       <p className="card-meta">{entries.length} notes</p>
@@ -38,48 +37,35 @@ export default function JournalCard() {
           onChange={(e) => setContent(e.target.value)}
           rows="5"
         />
-
         <motion.button
           className="journal-add-btn"
           type="submit"
           whileHover={{ y: -1, scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
+          {...tapAnim}
         >
           Save Entry
         </motion.button>
       </form>
 
-      <div className="journal-list">
+      <AnimatePresence mode="wait">
         {entries.length === 0 ? (
-          <p className="journal-empty">No journal entries yet.</p>
-        ) : (
-          <motion.article
-            className="journal-entry"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22 }}
+          <motion.p
+            key="empty"
+            className="journal-empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <h3 className="journal-entry-title">{entries[0].title}</h3>
-            <p className="journal-entry-text">{entries[0].content}</p>
-
-            <div className="journal-entry-footer">
-              <span className="journal-entry-date">
-                {entries[0].createdAt}
-              </span>
-
-              <motion.button
-                className="journal-delete-btn"
-                type="button"
-                onClick={() => handleDeleteEntry(entries[0].id)}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Delete
-              </motion.button>
-            </div>
-          </motion.article>
+            No journal entries yet.
+          </motion.p>
+        ) : (
+          <JournalEntry
+            key={entries[0].id}
+            entry={entries[0]}
+            onDelete={handleDeleteEntry}
+          />
         )}
-      </div>
+      </AnimatePresence>
 
       {entries.length > 1 && (
         <p className="journal-more">+{entries.length - 1} older entries</p>

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 export default function useTasks() {
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem("elarion-tasks");
+
     return savedTasks
       ? JSON.parse(savedTasks)
       : [
@@ -47,6 +48,14 @@ export default function useTasks() {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   }
 
+  function handleEditTask(id, newText) {
+    const trimmed = newText.trim();
+    if (!trimmed) return;
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, text: trimmed } : task))
+    );
+  }
+
   function handleClearCompleted() {
     setTasks((prev) => prev.filter((task) => !task.completed));
   }
@@ -71,6 +80,7 @@ export default function useTasks() {
     completedCount,
     handleAddTask,
     handleToggleTask,
+    handleEditTask,
     handleDeleteTask,
     handleClearCompleted,
   };

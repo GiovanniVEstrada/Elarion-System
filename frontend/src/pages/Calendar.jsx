@@ -1,5 +1,37 @@
-import { motion } from "motion/react";
-import useCalendar from "../hooks/useCalendar";
+import { motion, AnimatePresence } from "motion/react";
+import { useCalendarContext } from "../context/CalendarContext";
+import PageShell from "../components/layout/PageShell";
+import SectionHeader from "../components/layout/SectionHeader";
+import EventItem from "../components/items/EventItem";
+import { getTodayStr, toDateStr } from "../utils/dateUtils";
+import { tapAnim, hoverAnim } from "../utils/motion";
+
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function buildCalendarDays(year, month) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  const cells = [];
+
+  for (let i = firstDay - 1; i >= 0; i--) {
+    cells.push({ day: daysInPrev - i, current: false });
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ day: d, current: true });
+  }
+  const remaining = 42 - cells.length;
+  for (let d = 1; d <= remaining; d++) {
+    cells.push({ day: d, current: false });
+  }
+
+  return cells;
+}
 
 export default function Calendar() {
   const {
@@ -7,6 +39,8 @@ export default function Calendar() {
     setEventTitle,
     eventDate,
     setEventDate,
+    eventTime,
+    setEventTime,
     filter,
     setFilter,
     filteredEvents,
@@ -14,29 +48,37 @@ export default function Calendar() {
     pastCount,
     handleAddEvent,
     handleDeleteEvent,
+    editingEventId,
+    startEditingEvent,
+    stopEditingEvent,
     formatDate,
-  } = useCalendar();
+    formatTime,
+    selectedDay,
+    setSelectedDay,
+    currentMonth,
+    prevMonth,
+    nextMonth,
+    getEventDatesInMonth,
+  } = useCalendarContext();
+
+  const { year, month } = currentMonth;
+  const cells = buildCalendarDays(year, month);
+  const eventDates = getEventDatesInMonth(year, month);
+  const todayStr = getTodayStr();
+
+  function handleDayClick(day) {
+    const dateStr = toDateStr(year, month + 1, day);
+    setSelectedDay((prev) => (prev === dateStr ? null : dateStr));
+    setEventDate(dateStr);
+  }
 
   return (
-    <motion.section
-      className="feature-page"
-      initial={{ opacity: 0, y: 22 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <motion.div
-        className="feature-page-header"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.35 }}
-      >
-        <span className="card-kicker">Workspace</span>
-        <h1>Calendar</h1>
-        <p>
-          Organize your schedule in a cleaner space with room to grow into shared
-          planning later.
-        </p>
-      </motion.div>
+    <PageShell>
+      <SectionHeader
+        kicker="Workspace"
+        title="Calendar"
+        subtitle="Organize your schedule in a cleaner space with room to grow into shared planning later."
+      />
 
       <motion.div
         className="calendar-page-shell"
@@ -44,106 +86,193 @@ export default function Calendar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.38 }}
       >
-        <div className="calendar-page-toolbar">
-          <form className="calendar-form" onSubmit={handleAddEvent}>
-            <input
-              className="calendar-input"
-              type="text"
-              placeholder="Event title..."
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
-            />
+        <div className="calendar-layout">
 
-            <input
-              className="calendar-date-input"
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-            />
-
-            <motion.button
-              className="calendar-add-btn"
-              type="submit"
-              whileHover={{ y: -1, scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Add Event
-            </motion.button>
-          </form>
-
-          <div className="calendar-page-controls">
-            <div className="calendar-filter-group">
+          {/* LEFT — Month Grid */}
+          <div className="calendar-grid-panel">
+            <div className="calendar-grid-header">
               <motion.button
+                className="cal-nav-btn"
                 type="button"
-                className={filter === "all" ? "calendar-filter-btn active" : "calendar-filter-btn"}
-                onClick={() => setFilter("all")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
+                onClick={prevMonth}
+                {...hoverAnim}
+                whileTap={{ scale: 0.96 }}
               >
-                All
+                ←
               </motion.button>
 
-              <motion.button
-                type="button"
-                className={filter === "upcoming" ? "calendar-filter-btn active" : "calendar-filter-btn"}
-                onClick={() => setFilter("upcoming")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Upcoming
-              </motion.button>
+              <span className="cal-month-label">
+                {MONTHS[month]} {year}
+              </span>
 
               <motion.button
+                className="cal-nav-btn"
                 type="button"
-                className={filter === "past" ? "calendar-filter-btn active" : "calendar-filter-btn"}
-                onClick={() => setFilter("past")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
+                onClick={nextMonth}
+                {...hoverAnim}
+                whileTap={{ scale: 0.96 }}
               >
-                Past
+                →
               </motion.button>
             </div>
 
-            <div className="calendar-page-stats">
-              <span>{upcomingCount} upcoming</span>
-              <span>{pastCount} past</span>
+            <div className="calendar-day-names">
+              {DAYS.map((d) => (
+                <span key={d} className="cal-day-name">{d}</span>
+              ))}
+            </div>
+
+            <div className="calendar-grid">
+              {cells.map((cell, i) => {
+                const dateStr = cell.current
+                  ? toDateStr(year, month + 1, cell.day)
+                  : null;
+
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedDay;
+                const hasEvent = dateStr && eventDates.has(dateStr);
+
+                return (
+                  <motion.button
+                    key={i}
+                    type="button"
+                    className={[
+                      "cal-day",
+                      !cell.current ? "cal-day--outside" : "",
+                      cell.current && isToday ? "cal-day--today" : "",
+                      cell.current && isSelected ? "cal-day--selected" : "",
+                    ].join(" ").trim()}
+                    onClick={() => cell.current && handleDayClick(cell.day)}
+                    whileHover={cell.current ? { scale: 1.08 } : {}}
+                    whileTap={cell.current ? { scale: 0.95 } : {}}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <span>{cell.day}</span>
+                    {hasEvent && <span className="cal-event-dot" />}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* RIGHT — Add / Edit Event + Event List */}
+          <div className="calendar-side-panel">
+            <div className="calendar-page-toolbar">
+              <h2 className="cal-side-title">
+                {editingEventId
+                  ? "Edit Event"
+                  : selectedDay ? formatDate(selectedDay) : "Add Event"}
+              </h2>
+
+              <form className="calendar-form calendar-form--stacked" onSubmit={handleAddEvent}>
+                <input
+                  className="calendar-input"
+                  type="text"
+                  placeholder="Event title..."
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                />
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <input
+                    className="calendar-date-input"
+                    type="date"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    className="calendar-time-input"
+                    type="time"
+                    value={eventTime}
+                    onChange={(e) => setEventTime(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <motion.button
+                    className="calendar-add-btn"
+                    type="submit"
+                    whileHover={{ y: -1, scale: 1.01 }}
+                    {...tapAnim}
+                  >
+                    {editingEventId ? "Save Changes" : "Add Event"}
+                  </motion.button>
+
+                  {editingEventId && (
+                    <motion.button
+                      className="calendar-cancel-btn"
+                      type="button"
+                      onClick={stopEditingEvent}
+                      {...hoverAnim}
+                      {...tapAnim}
+                    >
+                      Cancel
+                    </motion.button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            <div className="calendar-page-list-wrap">
+              {!selectedDay && !editingEventId && (
+                <div className="calendar-page-controls">
+                  <div className="calendar-filter-group">
+                    {["all", "upcoming", "past"].map((f) => (
+                      <motion.button
+                        key={f}
+                        type="button"
+                        className={filter === f ? "calendar-filter-btn active" : "calendar-filter-btn"}
+                        onClick={() => setFilter(f)}
+                        {...hoverAnim}
+                        {...tapAnim}
+                      >
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                      </motion.button>
+                    ))}
+                  </div>
+                  <div className="calendar-page-stats">
+                    <span>{upcomingCount} upcoming</span>
+                    <span>{pastCount} past</span>
+                  </div>
+                </div>
+              )}
+
+              {selectedDay && !editingEventId && (
+                <motion.button
+                  className="cal-clear-day-btn"
+                  type="button"
+                  onClick={() => setSelectedDay(null)}
+                  {...hoverAnim}
+                  {...tapAnim}
+                >
+                  ← Show all events
+                </motion.button>
+              )}
+
+              {filteredEvents.length === 0 ? (
+                <p className="calendar-page-empty">
+                  {selectedDay ? "No events on this day." : "No events in this view."}
+                </p>
+              ) : (
+                <ul className="calendar-list">
+                  <AnimatePresence>
+                    {filteredEvents.map((event) => (
+                      <EventItem
+                        key={event.id}
+                        event={event}
+                        onDelete={handleDeleteEvent}
+                        onEdit={startEditingEvent}
+                        formatDate={formatDate}
+                        formatTime={formatTime}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              )}
             </div>
           </div>
         </div>
-
-        <div className="calendar-page-list-wrap">
-          {filteredEvents.length === 0 ? (
-            <p className="calendar-page-empty">No events in this view.</p>
-          ) : (
-            <div className="calendar-list">
-              {filteredEvents.map((event) => (
-                <motion.article
-                  className="calendar-event"
-                  key={event.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22 }}
-                >
-                  <div className="calendar-event-info">
-                    <h3>{event.title}</h3>
-                    <p className="calendar-event-date">{formatDate(event.date)}</p>
-                  </div>
-
-                  <motion.button
-                    className="calendar-delete-btn"
-                    type="button"
-                    onClick={() => handleDeleteEvent(event.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Delete
-                  </motion.button>
-                </motion.article>
-              ))}
-            </div>
-          )}
-        </div>
       </motion.div>
-    </motion.section>
+    </PageShell>
   );
 }

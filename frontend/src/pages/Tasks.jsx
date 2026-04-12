@@ -1,5 +1,9 @@
-import { motion } from "motion/react";
-import useTasks from "../hooks/useTasks";
+import { motion, AnimatePresence } from "motion/react";
+import { useTasksContext } from "../context/TasksContext";
+import PageShell from "../components/layout/PageShell";
+import SectionHeader from "../components/layout/SectionHeader";
+import TaskItem from "../components/items/TaskItem";
+import { tapAnim, hoverAnim } from "../utils/motion";
 
 export default function Tasks() {
   const {
@@ -12,27 +16,18 @@ export default function Tasks() {
     completedCount,
     handleAddTask,
     handleToggleTask,
+    handleEditTask,
     handleDeleteTask,
     handleClearCompleted,
-  } = useTasks();
+  } = useTasksContext();
 
   return (
-    <motion.section
-      className="feature-page"
-      initial={{ opacity: 0, y: 22 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <motion.div
-        className="feature-page-header"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.35 }}
-      >
-        <span className="card-kicker">Workspace</span>
-        <h1>Tasks</h1>
-        <p>Manage your tasks with more focus, structure, and control.</p>
-      </motion.div>
+    <PageShell>
+      <SectionHeader
+        kicker="Workspace"
+        title="Tasks"
+        subtitle="Manage your tasks with more focus, structure, and control."
+      />
 
       <motion.div
         className="tasks-page-shell"
@@ -53,7 +48,7 @@ export default function Tasks() {
               className="task-add-btn"
               type="submit"
               whileHover={{ y: -1, scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
+              {...tapAnim}
             >
               Add
             </motion.button>
@@ -61,33 +56,18 @@ export default function Tasks() {
 
           <div className="tasks-page-controls">
             <div className="tasks-filter-group">
-              <motion.button
-                type="button"
-                className={filter === "all" ? "tasks-filter-btn active" : "tasks-filter-btn"}
-                onClick={() => setFilter("all")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                All
-              </motion.button>
-              <motion.button
-                type="button"
-                className={filter === "active" ? "tasks-filter-btn active" : "tasks-filter-btn"}
-                onClick={() => setFilter("active")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Active
-              </motion.button>
-              <motion.button
-                type="button"
-                className={filter === "completed" ? "tasks-filter-btn active" : "tasks-filter-btn"}
-                onClick={() => setFilter("completed")}
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Completed
-              </motion.button>
+              {["all", "active", "completed"].map((f) => (
+                <motion.button
+                  key={f}
+                  type="button"
+                  className={filter === f ? "tasks-filter-btn active" : "tasks-filter-btn"}
+                  onClick={() => setFilter(f)}
+                  {...hoverAnim}
+                  {...tapAnim}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </motion.button>
+              ))}
             </div>
 
             <div className="tasks-page-stats">
@@ -102,52 +82,38 @@ export default function Tasks() {
             <p className="tasks-page-empty">No tasks in this view.</p>
           ) : (
             <ul className="task-list">
-              {filteredTasks.map((task) => (
-                <motion.li
-                  className="task-item"
-                  key={task.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22 }}
-                >
-                  <label className="task-left">
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={() => handleToggleTask(task.id)}
-                    />
-                    <span className={task.completed ? "task-text completed" : "task-text"}>
-                      {task.text}
-                    </span>
-                  </label>
-
-                  <motion.button
-                    className="task-delete-btn"
-                    type="button"
-                    onClick={() => handleDeleteTask(task.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Delete
-                  </motion.button>
-                </motion.li>
-              ))}
+              <AnimatePresence>
+                {filteredTasks.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggle={handleToggleTask}
+                    onEdit={handleEditTask}
+                    onDelete={handleDeleteTask}
+                  />
+                ))}
+              </AnimatePresence>
             </ul>
           )}
 
-          {completedCount > 0 && (
-            <motion.button
-              className="task-clear-btn"
-              type="button"
-              onClick={handleClearCompleted}
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Clear Completed
-            </motion.button>
-          )}
+          <AnimatePresence>
+            {completedCount > 0 && (
+              <motion.button
+                className="task-clear-btn"
+                type="button"
+                onClick={handleClearCompleted}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                {...hoverAnim}
+                {...tapAnim}
+              >
+                Clear Completed
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
-    </motion.section>
+    </PageShell>
   );
 }

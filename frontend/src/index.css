@@ -13,6 +13,10 @@
   --accent: #74d8ff;
   --accent-2: #7ef0d3;
   --accent-3: #b58cff;
+  --accent-rgb: 116, 216, 255;
+  --glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 18%, rgba(255, 255, 255, 0.03) 100%);
+  --glass-backdrop: blur(20px) saturate(125%);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px -18px rgba(0, 0, 0, 0.38), 0 8px 18px -10px rgba(0, 0, 0, 0.24);
 
   --shadow:
     rgba(0, 0, 0, 0.35) 0 18px 40px -18px,
@@ -46,47 +50,58 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--text);
-  background:
-    radial-gradient(circle at 12% 10%, rgba(24, 143, 113, 0.08), transparent 22%),
-    radial-gradient(circle at 88% 12%, rgba(88, 88, 88, 0.1), transparent 20%),
-    radial-gradient(circle at 50% 85%, rgba(181, 140, 255, 0.08), transparent 24%),
-    linear-gradient(180deg, #030b14 0%, #071523 22%, #0a2030 48%, #0c2a39 72%, #0a2130 100%);
   overflow-x: hidden;
   position: relative;
+
+  background:
+    radial-gradient(circle at 12% 10%, rgba(126, 240, 211, 0.08), transparent 22%),
+    radial-gradient(circle at 88% 12%, rgba(var(--accent-rgb), 0.10), transparent 20%),
+    radial-gradient(circle at 50% 85%, rgba(181, 140, 255, 0.08), transparent 24%),
+    url("/src/assets/bg-image1.png"),
+    linear-gradient(180deg, #030b14 0%, #071523 22%, #0a2030 48%, #0c2a39 72%, #0a2130 100%);
+
+  background-size: cover;
+  background-position:
+    center,
+    center,
+    center,
+    center calc(var(--bg-shift-1) * 0.2),
+    center;
+  background-attachment: fixed;
 }
 
 body::before,
 body::after {
   content: "";
   position: fixed;
-  inset: -10%;
+  inset: 0;
+  background: rgba(3, 11, 20, 0.863);
+  z-index: -1;
   pointer-events: none;
-  z-index: -2;
-  will-change: transform;
 }
 
 body::before {
   background:
     radial-gradient(
       ellipse at 20% 30%,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.02) 18%,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.01) 18%,
       transparent 42%
     ),
     radial-gradient(
       ellipse at 70% 22%,
-      rgba(116, 216, 255, 0.07) 0%,
-      rgba(116, 216, 255, 0.02) 20%,
+      rgba(var(--accent-rgb), 0.06) 0%,
+      rgba(var(--accent-rgb), 0.02) 20%,
       transparent 45%
     ),
     radial-gradient(
       ellipse at 50% 80%,
-      rgba(126, 240, 211, 0.06) 0%,
-      rgba(126, 240, 211, 0.02) 18%,
+      rgba(126, 240, 211, 0.05) 0%,
+      rgba(126, 240, 211, 0.01) 18%,
       transparent 42%
     );
   filter: blur(28px);
-  opacity: 0.9;
+  opacity: 0.8;
   transform: translate3d(0, var(--bg-shift-1), 0);
 }
 
@@ -151,7 +166,7 @@ button {
   height: 320px;
   top: 8%;
   left: 4%;
-  background: rgba(116, 216, 255, 0.16);
+  background: rgba(var(--accent-rgb), 0.16);
   transform: translate3d(0, var(--bg-shift-1), 0);
   animation: liquidDrift 14s ease-in-out infinite;
 }
@@ -238,8 +253,8 @@ button {
 .nav-link.active {
   color: var(--text-h);
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(116, 216, 255, 0.24);
-  box-shadow: 0 0 0 1px rgba(116, 216, 255, 0.06);
+  border-color: rgba(var(--accent-rgb), 0.24);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.06);
 }
 
 .dashboard,
@@ -289,6 +304,49 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.dashboard-greeting {
+  font-size: 0.85rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.dashboard-date {
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  margin-top: 6px;
+}
+
+.dashboard-summary {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-summary-line {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.02em;
+}
+
+.dashboard-reflection {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: rgba(140, 168, 179, 0.55);
+  font-style: italic;
+  max-width: 44ch;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+
+
 .dashboard-main {
   display: flex;
   flex-direction: column;
@@ -301,19 +359,10 @@ button {
   padding: 20px;
   border-radius: 24px;
   border: 1px solid rgba(173, 216, 230, 0.16);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.06) 18%,
-      rgba(255, 255, 255, 0.03) 100%
-    );
-  backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 40px -18px rgba(0, 0, 0, 0.38),
-    0 8px 18px -10px rgba(0, 0, 0, 0.24);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-shadow);
   transition:
     transform 0.25s ease,
     border-color 0.25s ease,
@@ -324,20 +373,28 @@ button {
 .dashboard-card::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -30%;
   background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.05) 18%,
-    rgba(255, 255, 255, 0.02) 28%,
-    transparent 40%
+    135deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.04) 46%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 54%,
+    transparent 62%,
+    transparent 100%
   );
   opacity: 0;
-  transform: translateX(-60%);
+  transform: translate3d(-35%, -35%, 0) rotate(0deg);
   transition:
-    opacity 0.3s ease,
+    opacity 0.35s ease,
     transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
+  transform: translate3d(35%, 35%, 0) rotate(0deg);
 }
 
 .dashboard-card::after {
@@ -348,14 +405,9 @@ button {
   bottom: -16px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(116, 216, 255, 0.09);
+  background: rgba(var(--accent-rgb), 0.09);
   filter: blur(16px);
   pointer-events: none;
-}
-
-.dashboard-card:hover::before {
-  opacity: 1;
-  transform: translateX(120%);
 }
 
 .dashboard-card:hover {
@@ -363,7 +415,7 @@ button {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 24px 46px -22px rgba(0, 0, 0, 0.45),
-    0 0 18px rgba(116, 216, 255, 0.08);
+    0 0 18px rgba(var(--accent-rgb), 0.08);
 }
 
 .card-kicker {
@@ -409,7 +461,7 @@ button {
 .card-link:hover {
   color: var(--text-h);
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(116, 216, 255, 0.2);
+  border-color: rgba(var(--accent-rgb), 0.2);
   transform: translateY(-1px);
 }
 
@@ -423,6 +475,7 @@ button {
 .journal-textarea,
 .calendar-input,
 .calendar-date-input,
+.calendar-time-input,
 .journal-title-input {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -438,6 +491,7 @@ button {
 .task-input,
 .calendar-input,
 .calendar-date-input,
+.calendar-time-input,
 .journal-title-input {
   padding: 12px 14px;
   border-radius: 14px;
@@ -461,13 +515,14 @@ button {
 .journal-textarea:focus,
 .calendar-input:focus,
 .calendar-date-input:focus,
+.calendar-time-input:focus,
 .journal-title-input:focus {
   background: rgba(6, 19, 31, 0.65);
 }
 
 .task-input:focus {
-  border-color: rgba(116, 216, 255, 0.4);
-  box-shadow: 0 0 0 1px rgba(116, 216, 255, 0.12);
+  border-color: rgba(var(--accent-rgb), 0.4);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12);
 }
 
 .journal-textarea:focus,
@@ -477,23 +532,32 @@ button {
 }
 
 .calendar-input:focus,
-.calendar-date-input:focus {
+.calendar-date-input:focus,
+.calendar-time-input:focus {
   border-color: rgba(181, 140, 255, 0.35);
   box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.12);
 }
 
-.calendar-date-input {
+.calendar-date-input,
+.calendar-time-input {
   appearance: none;
   -webkit-appearance: none;
 }
 
 .task-add-btn,
 .task-delete-btn,
+.task-edit-btn,
+.task-save-btn,
+.task-cancel-btn,
 .task-clear-btn,
 .journal-add-btn,
 .journal-delete-btn,
+.journal-edit-btn,
+.journal-cancel-btn,
 .calendar-add-btn,
 .calendar-delete-btn,
+.calendar-edit-btn,
+.calendar-cancel-btn,
 .tasks-filter-btn,
 .calendar-filter-btn {
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -518,7 +582,7 @@ button {
 .task-add-btn {
   background: linear-gradient(
     135deg,
-    rgba(116, 216, 255, 0.18),
+    rgba(var(--accent-rgb), 0.18),
     rgba(126, 240, 211, 0.16)
   );
 }
@@ -527,7 +591,7 @@ button {
   background: linear-gradient(
     135deg,
     rgba(181, 140, 255, 0.16),
-    rgba(116, 216, 255, 0.14)
+    rgba(var(--accent-rgb), 0.14)
   );
 }
 
@@ -540,9 +604,16 @@ button {
 }
 
 .task-delete-btn,
+.task-edit-btn,
+.task-save-btn,
+.task-cancel-btn,
 .task-clear-btn,
 .journal-delete-btn,
-.calendar-delete-btn {
+.journal-edit-btn,
+.journal-cancel-btn,
+.calendar-delete-btn,
+.calendar-edit-btn,
+.calendar-cancel-btn {
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.06);
 }
@@ -551,18 +622,38 @@ button {
 .journal-add-btn:hover,
 .calendar-add-btn:hover {
   box-shadow:
-    0 0 0 1px rgba(116, 216, 255, 0.2),
-    0 8px 18px rgba(116, 216, 255, 0.12);
+    0 0 0 1px rgba(var(--accent-rgb), 0.2),
+    0 8px 18px rgba(var(--accent-rgb), 0.12);
 }
 
 .task-delete-btn:hover,
+.task-edit-btn:hover,
+.task-save-btn:hover,
+.task-cancel-btn:hover,
 .task-clear-btn:hover,
 .journal-delete-btn:hover,
+.journal-edit-btn:hover,
+.journal-cancel-btn:hover,
 .calendar-delete-btn:hover,
+.calendar-edit-btn:hover,
+.calendar-cancel-btn:hover,
 .tasks-filter-btn:hover,
 .calendar-filter-btn:hover {
-  border-color: rgba(116, 216, 255, 0.32);
-  box-shadow: 0 0 0 1px rgba(116, 216, 255, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.32);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+}
+
+.task-edit-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  background: rgba(6, 19, 31, 0.6);
+  color: var(--text-h);
+  font: inherit;
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.1);
+  min-width: 0;
 }
 
 .task-form,
@@ -600,9 +691,7 @@ button {
 .tasks-page-list-wrap,
 .journal-sidebar,
 .journal-editor-card,
-.journal-preview-card,
-.calendar-page-toolbar,
-.calendar-page-list-wrap {
+.journal-preview-card {
   border-radius: 24px;
 }
 
@@ -724,26 +813,15 @@ button {
 
 .tasks-page-toolbar,
 .tasks-page-list-wrap,
-.calendar-page-toolbar,
-.calendar-page-list-wrap,
 .journal-sidebar,
 .journal-editor-card,
 .journal-preview-card {
   padding: 20px;
   border: 1px solid rgba(173, 216, 230, 0.16);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.06) 18%,
-      rgba(255, 255, 255, 0.03) 100%
-    );
-  backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 40px -18px rgba(0, 0, 0, 0.38),
-    0 8px 18px -10px rgba(0, 0, 0, 0.24);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-shadow);
 }
 
 .tasks-page-controls,
@@ -776,8 +854,8 @@ button {
 .tasks-filter-btn.active {
   color: var(--text-h);
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(116, 216, 255, 0.24);
-  box-shadow: 0 0 0 1px rgba(116, 216, 255, 0.06);
+  border-color: rgba(var(--accent-rgb), 0.24);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.06);
 }
 
 .calendar-filter-btn.active {
@@ -812,7 +890,30 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+.journal-search-input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(6, 19, 31, 0.4);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.journal-search-input::placeholder {
+  color: rgba(182, 208, 218, 0.4);
+}
+
+.journal-search-input:focus {
+  border-color: rgba(181, 140, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.1);
 }
 
 .journal-note-item {
@@ -820,24 +921,54 @@ button {
   text-align: left;
   color: var(--text-soft);
   background: rgba(6, 19, 31, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .journal-note-item strong {
   display: block;
-  margin-bottom: 4px;
   color: var(--text-h);
   font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.journal-note-preview {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  opacity: 0.75;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .journal-note-item span {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-soft);
+  opacity: 0.6;
 }
 
 .journal-note-item.active {
   border-color: rgba(181, 140, 255, 0.28);
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.08);
+}
+
+.journal-note-item.active .journal-note-preview {
+  opacity: 0.9;
+}
+
+.journal-sidebar-empty {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  opacity: 0.6;
+  padding: 8px 4px;
 }
 
 .journal-editor-wrap {
@@ -852,6 +983,15 @@ button {
 
 .journal-entry-full {
   margin-top: 16px;
+}
+
+.footer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 0.85rem;
 }
 
 @media (max-width: 900px) {
@@ -946,5 +1086,174 @@ button {
   }
   100% {
     transform: translate3d(0, var(--bg-shift-2), 0) scale(1);
+  }
+}
+
+/* ── Calendar Grid ── */
+
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.calendar-grid-panel,
+.calendar-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.calendar-grid-panel {
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(173, 216, 230, 0.16);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px -18px rgba(0, 0, 0, 0.38);
+}
+
+.calendar-side-panel {
+  gap: 20px;
+}
+
+.calendar-grid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.cal-month-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: 0.02em;
+}
+
+.cal-nav-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cal-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(var(--accent-rgb), 0.3);
+}
+
+.calendar-day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.cal-day-name {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.cal-day--outside {
+  color: rgba(140, 168, 179, 0.18);
+  cursor: default;
+  pointer-events: none;
+  border-color: transparent;
+  background: transparent;
+}
+
+.cal-day--today {
+  color: var(--accent);
+  font-weight: 600;
+  border-color: rgba(var(--accent-rgb), 0.3);
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
+.cal-day--selected {
+  background: rgba(181, 140, 255, 0.18);
+  border-color: rgba(181, 140, 255, 0.4);
+  color: var(--text-h);
+  box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.12);
+}
+
+.cal-event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-3);
+  flex-shrink: 0;
+}
+
+.cal-side-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 14px;
+}
+
+.calendar-form--stacked {
+  flex-direction: column;
+}
+
+.calendar-form--stacked .calendar-add-btn {
+  align-self: stretch;
+}
+
+.cal-clear-day-btn {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  align-self: flex-start;
+}
+
+.cal-clear-day-btn:hover {
+  color: var(--text-h);
+  border-color: rgba(var(--accent-rgb), 0.28);
+}
+
+@media (max-width: 900px) {
+  .calendar-layout {
+    grid-template-columns: 1fr;
   }
 }
