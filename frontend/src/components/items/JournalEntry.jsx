@@ -1,6 +1,10 @@
 import { motion } from "motion/react";
 
+const MOOD_EMOJIS = ["", "😔", "😕", "😐", "🙂", "😊"];
+
 export default function JournalEntry({ entry, onDelete, onEdit, className = "journal-entry" }) {
+  const hasMeta = entry.mood || entry.clarity || entry.mentalState;
+
   return (
     <motion.article
       className={className}
@@ -11,6 +15,26 @@ export default function JournalEntry({ entry, onDelete, onEdit, className = "jou
     >
       <h3 className="journal-entry-title">{entry.title}</h3>
       <p className="journal-entry-text">{entry.content}</p>
+
+      {hasMeta && (
+        <div className="entry-meta">
+          {entry.mood && (
+            <span className="entry-meta-chip entry-meta-chip--mood">
+              {MOOD_EMOJIS[entry.mood]}
+            </span>
+          )}
+          {entry.clarity && (
+            <span className="entry-meta-chip entry-meta-chip--clarity">
+              {"●".repeat(entry.clarity)}{"○".repeat(5 - entry.clarity)} clarity
+            </span>
+          )}
+          {entry.mentalState && (
+            <span className="entry-meta-chip entry-meta-chip--state">
+              {entry.mentalState}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="journal-entry-footer">
         <span className="journal-entry-date">{entry.createdAt}</span>

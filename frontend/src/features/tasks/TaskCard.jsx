@@ -4,16 +4,25 @@ import { useTasksContext } from "../../context/TasksContext";
 import TaskItem from "../../components/items/TaskItem";
 import { tapAnim } from "../../utils/motion";
 
+const ENERGY_LEVELS = [
+  { value: "low", label: "Low", color: "#64dc82" },
+  { value: "medium", label: "Med", color: "#ffc83c" },
+  { value: "high", label: "High", color: "#ff5a5a" },
+];
+
 export default function TaskCard() {
   const {
     tasks,
     newTask,
     setNewTask,
+    newTaskEnergy,
+    setNewTaskEnergy,
     activeCount,
     handleAddTask,
     handleToggleTask,
     handleEditTask,
     handleDeleteTask,
+    handleRateTask,
     handleClearCompleted,
   } = useTasksContext();
 
@@ -31,24 +40,39 @@ export default function TaskCard() {
         <Link to="/tasks" className="card-link">View All →</Link>
       </div>
 
-      <p className="card-meta">{tasks.length} total • {activeCount} active</p>
+      <p className="card-meta">{tasks.length} total · {activeCount} active</p>
 
-      <form className="task-form" onSubmit={handleAddTask}>
-        <input
-          className="task-input"
-          type="text"
-          placeholder="Add a new task..."
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-        <motion.button
-          className="task-add-btn"
-          type="submit"
-          whileHover={{ y: -1, scale: 1.01 }}
-          {...tapAnim}
-        >
-          Add
-        </motion.button>
+      <form className="task-form task-form--stacked" onSubmit={handleAddTask}>
+        <div className="task-form-row">
+          <input
+            className="task-input"
+            type="text"
+            placeholder="Add a new task..."
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+          />
+          <motion.button
+            className="task-add-btn"
+            type="submit"
+            whileHover={{ y: -1, scale: 1.01 }}
+            {...tapAnim}
+          >
+            Add
+          </motion.button>
+        </div>
+        <div className="energy-picker">
+          {ENERGY_LEVELS.map(({ value, label, color }) => (
+            <button
+              key={value}
+              type="button"
+              className={`energy-btn energy-btn--${value}${newTaskEnergy === value ? " active" : ""}`}
+              onClick={() => setNewTaskEnergy(newTaskEnergy === value ? null : value)}
+              style={newTaskEnergy === value ? { borderColor: color, color } : {}}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </form>
 
       <ul className="task-list">
@@ -60,6 +84,7 @@ export default function TaskCard() {
               onToggle={handleToggleTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
+              onRate={handleRateTask}
             />
           ))}
         </AnimatePresence>

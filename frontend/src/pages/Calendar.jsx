@@ -41,6 +41,8 @@ export default function Calendar() {
     setEventDate,
     eventTime,
     setEventTime,
+    expectedFeeling,
+    setExpectedFeeling,
     filter,
     setFilter,
     filteredEvents,
@@ -48,6 +50,7 @@ export default function Calendar() {
     pastCount,
     handleAddEvent,
     handleDeleteEvent,
+    handleSetActualFeeling,
     editingEventId,
     startEditingEvent,
     stopEditingEvent,
@@ -60,6 +63,10 @@ export default function Calendar() {
     nextMonth,
     getEventDatesInMonth,
   } = useCalendarContext();
+
+  const FEELINGS = ["energizing", "neutral", "necessary", "draining"];
+  const FEELING_LABELS = { energizing: "Energizing", neutral: "Neutral", necessary: "Necessary", draining: "Draining" };
+  const FEELING_COLORS = { energizing: "#64dc82", neutral: "var(--accent)", necessary: "#ffc83c", draining: "#ff5a5a" };
 
   const { year, month } = currentMonth;
   const cells = buildCalendarDays(year, month);
@@ -130,7 +137,8 @@ export default function Calendar() {
 
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDay;
-                const hasEvent = dateStr && eventDates.has(dateStr);
+                const isPast = dateStr && dateStr < todayStr && !isToday;
+                const eventCount = dateStr ? (eventDates.get(dateStr) || 0) : 0;
 
                 return (
                   <motion.button
@@ -141,6 +149,7 @@ export default function Calendar() {
                       !cell.current ? "cal-day--outside" : "",
                       cell.current && isToday ? "cal-day--today" : "",
                       cell.current && isSelected ? "cal-day--selected" : "",
+                      cell.current && isPast ? "cal-day--past" : "",
                     ].join(" ").trim()}
                     onClick={() => cell.current && handleDayClick(cell.day)}
                     whileHover={cell.current ? { scale: 1.08 } : {}}
@@ -148,7 +157,16 @@ export default function Calendar() {
                     transition={{ duration: 0.15 }}
                   >
                     <span>{cell.day}</span>
-                    {hasEvent && <span className="cal-event-dot" />}
+                    {eventCount > 0 && (
+                      <div className="cal-event-indicators">
+                        {Array.from({ length: Math.min(eventCount, 3) }).map((_, idx) => (
+                          <span key={idx} className="cal-event-dot" />
+                        ))}
+                        {eventCount > 3 && (
+                          <span className="cal-event-count">+{eventCount - 3}</span>
+                        )}
+                      </div>
+                    )}
                   </motion.button>
                 );
               })}
@@ -188,6 +206,20 @@ export default function Calendar() {
                     style={{ flex: 1 }}
                   />
                 </div>
+                <div className="feeling-picker">
+                  {FEELINGS.map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      className={`feeling-btn feeling-btn--${f}${expectedFeeling === f ? " active" : ""}`}
+                      onClick={() => setExpectedFeeling(expectedFeeling === f ? null : f)}
+                      style={expectedFeeling === f ? { borderColor: FEELING_COLORS[f], color: FEELING_COLORS[f] } : {}}
+                    >
+                      {FEELING_LABELS[f]}
+                    </button>
+                  ))}
+                </div>
+
                 <div style={{ display: "flex", gap: "10px" }}>
                   <motion.button
                     className="calendar-add-btn"
@@ -262,6 +294,7 @@ export default function Calendar() {
                         event={event}
                         onDelete={handleDeleteEvent}
                         onEdit={startEditingEvent}
+                        onSetActualFeeling={handleSetActualFeeling}
                         formatDate={formatDate}
                         formatTime={formatTime}
                       />

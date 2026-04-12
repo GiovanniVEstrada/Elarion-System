@@ -10,6 +10,7 @@ export default function useCalendar() {
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [expectedFeeling, setExpectedFeeling] = useState(null);
   const [filter, setFilter] = useState("all");
   const [selectedDay, setSelectedDay] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
@@ -36,6 +37,7 @@ export default function useCalendar() {
     setEventTitle(event.title);
     setEventDate(event.date);
     setEventTime(event.time || "");
+    setExpectedFeeling(event.expectedFeeling || null);
     setEditingEventId(id);
   }
 
@@ -44,6 +46,7 @@ export default function useCalendar() {
     setEventTitle("");
     setEventDate("");
     setEventTime("");
+    setExpectedFeeling(null);
   }
 
   function handleAddEvent(e) {
@@ -56,7 +59,7 @@ export default function useCalendar() {
         sortEvents(
           prev.map((ev) =>
             ev.id === editingEventId
-              ? { ...ev, title: trimmedTitle, date: eventDate, time: eventTime }
+              ? { ...ev, title: trimmedTitle, date: eventDate, time: eventTime, expectedFeeling }
               : ev
           )
         )
@@ -70,12 +73,21 @@ export default function useCalendar() {
       title: trimmedTitle,
       date: eventDate,
       time: eventTime,
+      expectedFeeling,
+      actualFeeling: null,
     };
 
     setEvents(sortEvents([...events, newEvent]));
     setEventTitle("");
     setEventDate("");
     setEventTime("");
+    setExpectedFeeling(null);
+  }
+
+  function handleSetActualFeeling(id, feeling) {
+    setEvents((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, actualFeeling: feeling } : e))
+    );
   }
 
   function handleDeleteEvent(id) {
@@ -125,14 +137,14 @@ export default function useCalendar() {
   ).length;
 
   function getEventDatesInMonth(year, month) {
-    const set = new Set();
+    const map = new Map();
     events.forEach((e) => {
       const d = new Date(e.date + "T00:00:00");
       if (d.getFullYear() === year && d.getMonth() === month) {
-        set.add(e.date);
+        map.set(e.date, (map.get(e.date) || 0) + 1);
       }
     });
-    return set;
+    return map;
   }
 
   return {
@@ -143,6 +155,8 @@ export default function useCalendar() {
     setEventDate,
     eventTime,
     setEventTime,
+    expectedFeeling,
+    setExpectedFeeling,
     filter,
     setFilter,
     filteredEvents,
@@ -150,6 +164,7 @@ export default function useCalendar() {
     pastCount,
     handleAddEvent,
     handleDeleteEvent,
+    handleSetActualFeeling,
     editingEventId,
     startEditingEvent,
     stopEditingEvent,

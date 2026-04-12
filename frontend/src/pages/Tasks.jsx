@@ -9,6 +9,10 @@ export default function Tasks() {
   const {
     newTask,
     setNewTask,
+    newTaskEnergy,
+    setNewTaskEnergy,
+    newTaskIntent,
+    setNewTaskIntent,
     filter,
     setFilter,
     filteredTasks,
@@ -17,9 +21,16 @@ export default function Tasks() {
     handleAddTask,
     handleToggleTask,
     handleEditTask,
+    handleRateTask,
     handleDeleteTask,
     handleClearCompleted,
   } = useTasksContext();
+
+  const ENERGY_LEVELS = [
+    { value: "low", label: "Low", color: "#64dc82" },
+    { value: "medium", label: "Med", color: "#ffc83c" },
+    { value: "high", label: "High", color: "#ff5a5a" },
+  ];
 
   return (
     <PageShell>
@@ -36,22 +47,47 @@ export default function Tasks() {
         transition={{ delay: 0.1, duration: 0.38 }}
       >
         <div className="tasks-page-toolbar">
-          <form className="task-form" onSubmit={handleAddTask}>
-            <input
-              className="task-input"
-              type="text"
-              placeholder="Add a new task..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-            />
-            <motion.button
-              className="task-add-btn"
-              type="submit"
-              whileHover={{ y: -1, scale: 1.01 }}
-              {...tapAnim}
-            >
-              Add
-            </motion.button>
+          <form className="task-form task-form--stacked" onSubmit={handleAddTask}>
+            <div className="task-form-row">
+              <input
+                className="task-input"
+                type="text"
+                placeholder="Add a new task..."
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+              />
+              <motion.button
+                className="task-add-btn"
+                type="submit"
+                whileHover={{ y: -1, scale: 1.01 }}
+                {...tapAnim}
+              >
+                Add
+              </motion.button>
+            </div>
+
+            <div className="task-form-meta">
+              <div className="energy-picker">
+                {ENERGY_LEVELS.map(({ value, label, color }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`energy-btn energy-btn--${value}${newTaskEnergy === value ? " active" : ""}`}
+                    onClick={() => setNewTaskEnergy(newTaskEnergy === value ? null : value)}
+                    style={newTaskEnergy === value ? { borderColor: color, color } : {}}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <input
+                className="task-intent-input"
+                type="text"
+                placeholder="Why are you doing this? (optional)"
+                value={newTaskIntent}
+                onChange={(e) => setNewTaskIntent(e.target.value)}
+              />
+            </div>
           </form>
 
           <div className="tasks-page-controls">
@@ -90,6 +126,7 @@ export default function Tasks() {
                     onToggle={handleToggleTask}
                     onEdit={handleEditTask}
                     onDelete={handleDeleteTask}
+                    onRate={handleRateTask}
                   />
                 ))}
               </AnimatePresence>

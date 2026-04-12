@@ -3,17 +3,18 @@ import { useEffect, useMemo, useState } from "react";
 export default function useTasks() {
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem("elarion-tasks");
-
     return savedTasks
       ? JSON.parse(savedTasks)
       : [
-          { id: 1, text: "Finish dashboard polish", completed: false },
-          { id: 2, text: "Build task input system", completed: false },
-          { id: 3, text: "Connect local storage", completed: false },
+          { id: 1, text: "Finish dashboard polish", completed: false, energyLevel: null, intent: "", alignmentScore: null },
+          { id: 2, text: "Build task input system", completed: false, energyLevel: null, intent: "", alignmentScore: null },
+          { id: 3, text: "Connect local storage", completed: false, energyLevel: null, intent: "", alignmentScore: null },
         ];
   });
 
   const [newTask, setNewTask] = useState("");
+  const [newTaskEnergy, setNewTaskEnergy] = useState(null);
+  const [newTaskIntent, setNewTaskIntent] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -22,7 +23,6 @@ export default function useTasks() {
 
   function handleAddTask(e) {
     e.preventDefault();
-
     const trimmedTask = newTask.trim();
     if (!trimmedTask) return;
 
@@ -30,16 +30,29 @@ export default function useTasks() {
       id: Date.now(),
       text: trimmedTask,
       completed: false,
+      energyLevel: newTaskEnergy,
+      intent: newTaskIntent.trim(),
+      alignmentScore: null,
     };
 
     setTasks((prev) => [task, ...prev]);
     setNewTask("");
+    setNewTaskEnergy(null);
+    setNewTaskIntent("");
   }
 
   function handleToggleTask(id) {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  }
+
+  function handleRateTask(id, score) {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, alignmentScore: score } : task
       )
     );
   }
@@ -73,6 +86,10 @@ export default function useTasks() {
     tasks,
     newTask,
     setNewTask,
+    newTaskEnergy,
+    setNewTaskEnergy,
+    newTaskIntent,
+    setNewTaskIntent,
     filter,
     setFilter,
     filteredTasks,
@@ -80,6 +97,7 @@ export default function useTasks() {
     completedCount,
     handleAddTask,
     handleToggleTask,
+    handleRateTask,
     handleEditTask,
     handleDeleteTask,
     handleClearCompleted,
