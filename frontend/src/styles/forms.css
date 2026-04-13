@@ -1,0 +1,189 @@
+/* ── Text Inputs ── */
+
+.task-input,
+.journal-textarea,
+.calendar-input,
+.calendar-date-input,
+.calendar-time-input,
+.journal-title-input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(6, 19, 31, 0.5);
+  color: var(--text-h);
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.task-input,
+.calendar-input,
+.calendar-date-input,
+.calendar-time-input,
+.journal-title-input {
+  margin-right: -6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.journal-textarea {
+  min-height: 120px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  resize: vertical;
+}
+
+.task-input::placeholder,
+.journal-textarea::placeholder,
+.calendar-input::placeholder,
+.journal-title-input::placeholder {
+  color: rgba(182, 208, 218, 0.6);
+}
+
+.task-input:focus,
+.journal-textarea:focus,
+.calendar-input:focus,
+.calendar-date-input:focus,
+.calendar-time-input:focus,
+.journal-title-input:focus {
+  background: rgba(6, 19, 31, 0.65);
+}
+
+.task-input:focus {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12);
+}
+
+.journal-textarea:focus,
+.journal-title-input:focus {
+  border-color: rgba(126, 240, 211, 0.4);
+  box-shadow: 0 0 0 1px rgba(126, 240, 211, 0.12);
+}
+
+.calendar-input:focus,
+.calendar-date-input:focus,
+.calendar-time-input:focus {
+  border-color: rgba(181, 140, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.12);
+}
+
+.calendar-date-input,
+.calendar-time-input {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+}
+
+.calendar-date-input::-webkit-calendar-picker-indicator,
+.calendar-time-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.75) sepia(0.4) saturate(2) hue-rotate(170deg);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.calendar-date-input::-webkit-calendar-picker-indicator:hover,
+.calendar-time-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* ── Buttons ── */
+
+.task-add-btn,
+.task-delete-btn,
+.task-edit-btn,
+.task-save-btn,
+.task-cancel-btn,
+.task-clear-btn,
+.journal-add-btn,
+.journal-delete-btn,
+.journal-edit-btn,
+.journal-cancel-btn,
+.calendar-add-btn,
+.calendar-delete-btn,
+.calendar-edit-btn,
+.calendar-cancel-btn,
+.tasks-filter-btn,
+.calendar-filter-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+  color: var(--text-h);
+}
+
+.task-add-btn,
+.journal-add-btn,
+.calendar-add-btn {
+  align-self: flex-start;
+  padding: 12px 16px;
+}
+
+.task-add-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--accent-rgb), 0.18),
+    rgba(126, 240, 211, 0.16)
+  );
+}
+
+.journal-add-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(181, 140, 255, 0.16),
+    rgba(var(--accent-rgb), 0.14)
+  );
+}
+
+.calendar-add-btn {
+  background: linear-gradient(
+    135deg,
+    rgba(126, 240, 211, 0.14),
+    rgba(181, 140, 255, 0.16)
+  );
+}
+
+.task-delete-btn,
+.task-edit-btn,
+.task-save-btn,
+.task-cancel-btn,
+.task-clear-btn,
+.journal-delete-btn,
+.journal-edit-btn,
+.journal-cancel-btn,
+.calendar-delete-btn,
+.calendar-edit-btn,
+.calendar-cancel-btn {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.task-add-btn:hover,
+.journal-add-btn:hover,
+.calendar-add-btn:hover {
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), 0.2),
+    0 8px 18px rgba(var(--accent-rgb), 0.12);
+}
+
+.task-delete-btn:hover,
+.task-edit-btn:hover,
+.task-save-btn:hover,
+.task-cancel-btn:hover,
+.task-clear-btn:hover,
+.journal-delete-btn:hover,
+.journal-edit-btn:hover,
+.journal-cancel-btn:hover,
+.calendar-delete-btn:hover,
+.calendar-edit-btn:hover,
+.calendar-cancel-btn:hover,
+.tasks-filter-btn:hover,
+.calendar-filter-btn:hover {
+  border-color: rgba(var(--accent-rgb), 0.32);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+}

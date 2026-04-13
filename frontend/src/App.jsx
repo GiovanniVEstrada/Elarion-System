@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Journal from "./pages/Journal";
 import Calendar from "./pages/Calendar";
+import Reflect from "./pages/Reflect";
 import { TasksProvider } from "./context/TasksContext";
 import { JournalProvider } from "./context/JournalContext";
 import { CalendarProvider } from "./context/CalendarContext";
@@ -31,6 +32,7 @@ function AnimatedRoutes() {
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/reflect" element={<Reflect />} />
         </Routes>
       </motion.div>
     </AnimatePresence>

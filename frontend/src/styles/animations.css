@@ -1,0 +1,98 @@
+/* ── Responsive Breakpoints ── */
+
+@media (max-width: 900px) {
+  .dashboard,
+  .feature-page {
+    padding: 24px 16px 32px;
+  }
+
+  .navbar {
+    margin: 12px 16px 0;
+    padding: 14px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-header {
+    margin-bottom: 22px;
+  }
+
+  .journal-page-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-actions,
+  .tasks-page-controls,
+  .calendar-page-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-form,
+  .calendar-form {
+    flex-direction: column;
+  }
+
+  .task-item,
+  .calendar-event,
+  .journal-entry-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-delete-btn,
+  .task-clear-btn,
+  .journal-add-btn,
+  .journal-delete-btn,
+  .calendar-add-btn,
+  .calendar-delete-btn,
+  .task-add-btn {
+    width: 100%;
+  }
+
+  .task-add-btn,
+  .journal-add-btn,
+  .calendar-add-btn {
+    align-self: stretch;
+  }
+
+  .tasks-filter-group,
+  .tasks-page-stats,
+  .calendar-filter-group,
+  .calendar-page-stats {
+    width: 100%;
+  }
+
+  .tasks-filter-btn,
+  .calendar-filter-btn {
+    flex: 1;
+  }
+}
+
+/* ── Keyframes ── */
+
+@keyframes liquidDrift {
+  0% {
+    transform: translate3d(0, var(--bg-shift-1), 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, calc(var(--bg-shift-1) + 8px), 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, var(--bg-shift-1), 0) scale(1);
+  }
+}
+
+@keyframes liquidDriftSoft {
+  0% {
+    transform: translate3d(0, var(--bg-shift-2), 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-8px, calc(var(--bg-shift-2) + 6px), 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0, var(--bg-shift-2), 0) scale(1);
+  }
+}

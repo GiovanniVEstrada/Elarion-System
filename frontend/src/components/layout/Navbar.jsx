@@ -44,6 +44,12 @@ export default function Navbar() {
             Calendar
           </NavLink>
         </motion.div>
+
+        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+          <NavLink to="/reflect" className={linkClass}>
+            Reflect
+          </NavLink>
+        </motion.div>
       </div>
     </motion.nav>
   );

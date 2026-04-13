@@ -126,16 +126,16 @@ export default function Dashboard() {
           >
             <span className="dashboard-summary-line">{summaryLine}</span>
           </motion.div>
-
-          <motion.p
-            className="dashboard-reflection"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.22, duration: 0.4 }}
-          >
-            {reflection}
-          </motion.p>
         </div>
+
+        <motion.p
+          className="dashboard-reflection"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.22, duration: 0.4 }}
+        >
+          {reflection}
+        </motion.p>
       </motion.header>
 
       <motion.main

@@ -1,0 +1,230 @@
+/* ── Reflect Page ── */
+
+.reflect-shell { width: 100%; }
+
+.reflect-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .reflect-grid { grid-template-columns: 1fr; }
+}
+
+.reflect-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 22px 22px 20px;
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.reflect-card-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-soft);
+  opacity: 0.55;
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.reflect-meta {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+  margin: 0 0 16px;
+}
+
+.reflect-subsection {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reflect-sublabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  opacity: 0.5;
+  font-weight: 600;
+}
+
+/* Alignment bar */
+.align-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 2px;
+}
+.align-seg { border-radius: 999px; }
+.align-seg-off     { background: #ff5a5a; }
+.align-seg-neutral { background: #ffc83c; }
+.align-seg-aligned { background: #64dc82; }
+
+.align-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.74rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+}
+
+/* Data rows (energy, feeling breakdowns) */
+.data-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.data-row-label {
+  width: 52px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+.data-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.data-bar {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 4px;
+  transition: width 0.5s ease;
+}
+.data-row-count {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+  opacity: 0.6;
+  width: 18px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Mood dot trail */
+.mood-dots {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.mood-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Averages row */
+.reflect-averages {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+.reflect-avg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.reflect-avg-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.reflect-avg-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1;
+}
+.reflect-avg-denom {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+  font-weight: 400;
+}
+.reflect-avg-label {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Mental state chips */
+.state-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.state-chip {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.state-chip-count {
+  font-size: 0.68rem;
+  opacity: 0.6;
+}
+
+/* Big stat (accuracy %) */
+.reflect-accuracy {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.reflect-big-stat {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 1;
+}
+.reflect-accuracy-note {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+}
+
+/* Recent intents list */
+.reflect-intents {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.reflect-intent-item {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Empty state */
+.reflect-empty {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  opacity: 0.4;
+  font-style: italic;
+  padding: 12px 0 4px;
+  margin: 0;
+}

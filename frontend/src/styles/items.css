@@ -1,0 +1,242 @@
+/* ── Inline Edit Input ── */
+
+.task-edit-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  background: rgba(6, 19, 31, 0.6);
+  color: var(--text-h);
+  font: inherit;
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.1);
+  min-width: 0;
+}
+
+/* ── Form Layouts ── */
+
+.task-form,
+.calendar-form {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0 18px;
+}
+
+.journal-form,
+.journal-page-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0 18px;
+}
+
+/* ── List Containers ── */
+
+.task-list,
+.calendar-list,
+.journal-list,
+.journal-note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Item Border Radii (shared) ── */
+
+.task-item,
+.calendar-event,
+.journal-entry,
+.journal-note-item,
+.tasks-page-toolbar,
+.tasks-page-list-wrap,
+.calendar-page-toolbar,
+.calendar-page-list-wrap,
+.journal-sidebar,
+.journal-editor-card,
+.journal-preview-card {
+  border-radius: 24px;
+}
+
+.task-item,
+.calendar-event,
+.journal-entry,
+.journal-note-item {
+  padding: 12px;
+  background: rgba(6, 19, 31, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.task-item,
+.calendar-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Task Item ── */
+
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-left input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+.task-text {
+  color: var(--text-h);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.task-text.completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: var(--text-soft);
+}
+
+.task-more,
+.calendar-more,
+.journal-more {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+/* ── Empty States ── */
+
+.journal-empty,
+.calendar-empty,
+.tasks-page-empty,
+.calendar-page-empty {
+  color: var(--text-soft);
+}
+
+/* ── Journal Entry Item ── */
+
+.journal-entry-title {
+  margin-bottom: 8px;
+  color: var(--text-h);
+  font-size: 1rem;
+}
+
+.journal-entry-text {
+  color: var(--text-h);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.journal-entry-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.journal-entry-date,
+.calendar-event-date {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+/* ── Calendar Event Item ── */
+
+.calendar-event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.calendar-event-info h3 {
+  font-size: 1rem;
+  color: var(--text-h);
+}
+
+/* ── Page Shells & Toolbars ── */
+
+.tasks-page-shell,
+.calendar-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tasks-page-toolbar,
+.tasks-page-list-wrap,
+.calendar-page-toolbar,
+.calendar-page-list-wrap,
+.journal-sidebar,
+.journal-editor-card,
+.journal-preview-card {
+  padding: 20px;
+  border: 1px solid rgba(173, 216, 230, 0.16);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-shadow);
+}
+
+.tasks-page-controls,
+.calendar-page-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tasks-filter-group,
+.calendar-filter-group,
+.tasks-page-stats,
+.calendar-page-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tasks-filter-btn,
+.calendar-filter-btn {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-soft);
+}
+
+.tasks-filter-btn.active {
+  color: var(--text-h);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.24);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.06);
+}
+
+.calendar-filter-btn.active {
+  color: var(--text-h);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(181, 140, 255, 0.24);
+  box-shadow: 0 0 0 1px rgba(181, 140, 255, 0.06);
+}
+
+.tasks-page-stats span,
+.calendar-page-stats span,
+.journal-sidebar-header span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
