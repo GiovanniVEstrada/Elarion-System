@@ -98,10 +98,10 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05, duration: 0.3 }}
           >
-            {greeting}{user?.name ? `, ${user.name}` : ""}
+            {greeting}
           </motion.p>
 
-          <h1>Elarion</h1>
+          <h1>{user?.name ?? "Elarion"}</h1>
 
           <motion.p
             className="dashboard-date"
