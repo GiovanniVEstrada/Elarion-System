@@ -1,31 +1,21 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import TaskCard from "../features/tasks/TaskCard";
 import JournalCard from "../features/journal/JournalCard";
 import CalendarCard from "../features/calendar/CalendarCard";
-import { useTasksContext } from "../context/TasksContext";
 import { useCalendarContext } from "../context/CalendarContext";
 import { getTodayStr } from "../utils/dateUtils";
+import { useAuth } from "../context/AuthContext";
+import client from "../api/client";
 
 const containerVariants = {
   hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
+  show: { transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 18 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.42,
-      ease: "easeOut",
-    },
-  },
+  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: "easeOut" } },
 };
 
 const REFLECTIONS = [
@@ -47,47 +37,51 @@ function getGreeting() {
 }
 
 export default function Dashboard() {
-  const { activeCount } = useTasksContext();
+  const { user } = useAuth();
   const { events } = useCalendarContext();
+  const [overview, setOverview] = useState(null);
+
+  useEffect(() => {
+    client
+      .get("/insights/overview")
+      .then((res) => setOverview(res.data))
+      .catch((err) => console.error("Failed to fetch overview", err));
+  }, []);
 
   const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
 
   const greeting = getGreeting();
-  const todayStr = getTodayStr();
-
+  const todayStr  = getTodayStr();
   const todayEvents = events.filter((e) => e.date === todayStr);
 
   const reflection = useMemo(() => {
-    const dayIndex = new Date().getDate();
-    return REFLECTIONS[dayIndex % REFLECTIONS.length];
+    return REFLECTIONS[new Date().getDate() % REFLECTIONS.length];
   }, []);
 
   const summaryLine = useMemo(() => {
     const parts = [];
+    const active = overview
+      ? overview.totalTasks - overview.completedTasks
+      : null;
 
-    if (activeCount === 0) {
+    if (active === null) {
+      parts.push("Loading…");
+    } else if (active === 0) {
       parts.push("No active tasks");
-    } else if (activeCount === 1) {
-      parts.push("1 active task");
     } else {
-      parts.push(`${activeCount} active tasks`);
+      parts.push(`${active} active task${active !== 1 ? "s" : ""}`);
     }
 
     if (todayEvents.length === 0) {
       parts.push("nothing scheduled today");
-    } else if (todayEvents.length === 1) {
-      parts.push(`1 event today`);
     } else {
-      parts.push(`${todayEvents.length} events today`);
+      parts.push(`${todayEvents.length} event${todayEvents.length !== 1 ? "s" : ""} today`);
     }
 
     return parts.join(" · ");
-  }, [activeCount, todayEvents]);
+  }, [overview, todayEvents]);
 
   return (
     <div className="dashboard">
@@ -104,7 +98,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05, duration: 0.3 }}
           >
-            {greeting}
+            {greeting}{user?.name ? `, ${user.name}` : ""}
           </motion.p>
 
           <h1>Elarion</h1>
@@ -125,6 +119,12 @@ export default function Dashboard() {
             transition={{ delay: 0.15, duration: 0.3 }}
           >
             <span className="dashboard-summary-line">{summaryLine}</span>
+
+            {overview && (
+              <span className="dashboard-summary-line" style={{ opacity: 0.55, fontSize: "0.85em" }}>
+                {overview.completionRate?.toFixed(0) ?? 0}% completion · {overview.totalJournalEntries ?? 0} notes · {overview.activeHabits ?? 0} active habits
+              </span>
+            )}
           </motion.div>
         </div>
 
@@ -144,17 +144,9 @@ export default function Dashboard() {
         initial="hidden"
         animate="show"
       >
-        <motion.div variants={itemVariants}>
-          <TaskCard />
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <JournalCard />
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <CalendarCard />
-        </motion.div>
+        <motion.div variants={itemVariants}><TaskCard /></motion.div>
+        <motion.div variants={itemVariants}><JournalCard /></motion.div>
+        <motion.div variants={itemVariants}><CalendarCard /></motion.div>
       </motion.main>
     </div>
   );

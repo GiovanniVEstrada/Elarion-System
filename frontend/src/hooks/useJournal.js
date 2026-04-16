@@ -1,66 +1,127 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import client from "../api/client";
+import { useAuth } from "../context/AuthContext";
+
+const MOOD_TO_STRING = { 1: "awful", 2: "bad", 3: "neutral", 4: "good", 5: "great" };
+const MOOD_TO_NUM    = { awful: 1, bad: 2, neutral: 3, good: 4, great: 5 };
+
+function normalizeEntry(e) {
+  return { ...e, mood: typeof e.mood === "string" ? MOOD_TO_NUM[e.mood] ?? null : e.mood };
+}
+
+const GUEST_ENTRIES_KEY = "guest_journal_entries";
+const GUEST_FOLDERS_KEY = "guest_journal_folders";
+const guestLoadEntries  = () => { try { return JSON.parse(localStorage.getItem(GUEST_ENTRIES_KEY) || "[]"); } catch { return []; } };
+const guestLoadFolders  = () => { try { return JSON.parse(localStorage.getItem(GUEST_FOLDERS_KEY) || "[]"); } catch { return []; } };
+const guestSaveEntries  = (e) => localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(e));
+const guestSaveFolders  = (f) => localStorage.setItem(GUEST_FOLDERS_KEY, JSON.stringify(f));
 
 export default function useJournal() {
-  const [entries, setEntries] = useState(() => {
-    const savedEntries = localStorage.getItem("elarion-journal");
-    return savedEntries ? JSON.parse(savedEntries) : [];
-  });
-
-  const [folders, setFolders] = useState(() => {
-    return JSON.parse(localStorage.getItem("elarion-folders") || "[]");
-  });
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [mood, setMood] = useState(null);
   const [clarity, setClarity] = useState(null);
   const [mentalState, setMentalState] = useState(null);
+  const [activeFolder, setActiveFolder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFolderId, setActiveFolderId] = useState(null);
+
+  const [folders, setFolders] = useState([]);
   const [addingFolder, setAddingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem("elarion-journal", JSON.stringify(entries));
-  }, [entries]);
+  // ── Fetch ────────────────────────────────────────────────────────
+
+  const fetchEntries = useCallback(async () => {
+    if (!isAuthenticated) {
+      const saved = guestLoadEntries();
+      setEntries(saved);
+      setFolders(guestLoadFolders());
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await client.get("/journal", { params: { limit: 100 } });
+      const normalized = (res.data.data ?? res.data).map(normalizeEntry);
+      setEntries(normalized);
+
+      const seen = new Set();
+      const derived = [];
+      normalized.forEach((e) => {
+        if (e.folder && !seen.has(e.folder)) {
+          seen.add(e.folder);
+          derived.push({ id: e.folder, name: e.folder });
+        }
+      });
+      setFolders(derived);
+    } catch (err) {
+      console.error("Failed to fetch journal entries", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem("elarion-folders", JSON.stringify(folders));
-  }, [folders]);
+    if (authLoading) return;
+    fetchEntries();
+  }, [fetchEntries, authLoading]);
+
+  // ── Filtered list ────────────────────────────────────────────────
 
   const filteredEntries = entries
-    .filter((e) => activeFolderId === null || e.folderId === activeFolderId)
+    .filter((e) => activeFolder === null || e.folder === activeFolder)
     .filter((e) => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return e.title.toLowerCase().includes(q) || e.content.toLowerCase().includes(q);
+      return (e.title || "").toLowerCase().includes(q) || (e.content || "").toLowerCase().includes(q);
     });
 
+  // ── Folder helpers ───────────────────────────────────────────────
+
   function handleAddFolder() {
-    if (!newFolderName.trim()) {
-      setAddingFolder(false);
-      return;
+    const name = newFolderName.trim();
+    if (!name) { setAddingFolder(false); return; }
+    if (!folders.find((f) => f.name === name)) {
+      const updated = [...folders, { id: name, name }];
+      setFolders(updated);
+      if (!isAuthenticated) guestSaveFolders(updated);
     }
-    setFolders((prev) => [...prev, { id: Date.now(), name: newFolderName.trim() }]);
     setNewFolderName("");
     setAddingFolder(false);
   }
 
-  function handleDeleteFolder(id) {
-    setFolders((prev) => prev.filter((f) => f.id !== id));
-    setEntries((prev) =>
-      prev.map((e) => (e.folderId === id ? { ...e, folderId: null } : e))
-    );
-    if (activeFolderId === id) setActiveFolderId(null);
+  async function handleDeleteFolder(folderName) {
+    const affected = entries.filter((e) => e.folder === folderName);
+    const updatedEntries = entries.map((e) => e.folder === folderName ? { ...e, folder: null } : e);
+    const updatedFolders = folders.filter((f) => f.id !== folderName);
+    setEntries(updatedEntries);
+    setFolders(updatedFolders);
+    if (activeFolder === folderName) setActiveFolder(null);
+
+    if (!isAuthenticated) {
+      guestSaveEntries(updatedEntries);
+      guestSaveFolders(updatedFolders);
+      return;
+    }
+    try {
+      await Promise.all(affected.map((e) => client.patch(`/journal/${e._id}`, { folder: null })));
+    } catch (err) {
+      console.error("Failed to remove folder from entries", err);
+    }
   }
 
+  // ── Edit mode ────────────────────────────────────────────────────
+
   function startEditing(id) {
-    const entry = entries.find((e) => e.id === id);
+    const entry = entries.find((e) => e._id === id);
     if (!entry) return;
-    setTitle(entry.title);
-    setContent(entry.content);
+    setTitle(entry.title || "");
+    setContent(entry.content || "");
     setMood(entry.mood || null);
     setClarity(entry.clarity || null);
     setMentalState(entry.mentalState || null);
@@ -69,72 +130,99 @@ export default function useJournal() {
 
   function stopEditing() {
     setEditingId(null);
-    setTitle("");
-    setContent("");
-    setMood(null);
-    setClarity(null);
-    setMentalState(null);
+    setTitle(""); setContent(""); setMood(null); setClarity(null); setMentalState(null);
   }
 
-  function handleAddEntry(e) {
+  // ── CRUD ─────────────────────────────────────────────────────────
+
+  async function handleAddEntry(e) {
     e.preventDefault();
-
-    const trimmedTitle = title.trim();
+    const trimmedTitle   = title.trim();
     const trimmedContent = content.trim();
-
     if (!trimmedTitle && !trimmedContent) return;
 
-    if (editingId) {
-      setEntries((prev) =>
-        prev.map((entry) =>
-          entry.id === editingId
-            ? {
-                ...entry,
-                title: trimmedTitle || "Untitled Note",
-                content: trimmedContent,
-                mood,
-                clarity,
-                mentalState,
-              }
-            : entry
-        )
-      );
-      stopEditing();
+    const payload = {
+      title:       trimmedTitle || "Untitled Note",
+      content:     trimmedContent,
+      mood:        mood ? MOOD_TO_STRING[mood] : undefined,
+      clarity:     clarity ?? undefined,
+      mentalState: mentalState ?? undefined,
+      folder:      activeFolder ?? undefined,
+    };
+
+    if (!isAuthenticated) {
+      if (editingId) {
+        const updated = entries.map((en) =>
+          en._id === editingId ? { ...en, ...payload, mood } : en
+        );
+        setEntries(updated);
+        guestSaveEntries(updated);
+        stopEditing();
+      } else {
+        const created = {
+          _id: `guest_${Date.now()}`,
+          ...payload,
+          mood,
+          createdAt: new Date().toISOString(),
+        };
+        const updated = [created, ...entries];
+        setEntries(updated);
+        guestSaveEntries(updated);
+        if (created.folder && !folders.find((f) => f.id === created.folder)) {
+          const updatedFolders = [...folders, { id: created.folder, name: created.folder }];
+          setFolders(updatedFolders);
+          guestSaveFolders(updatedFolders);
+        }
+        setSelectedId(created._id);
+        setTitle(""); setContent(""); setMood(null); setClarity(null); setMentalState(null);
+      }
       return;
     }
 
-    const newEntry = {
-      id: Date.now(),
-      title: trimmedTitle || "Untitled Note",
-      content: trimmedContent,
-      createdAt: new Date().toLocaleString(),
-      folderId: activeFolderId,
-      mood,
-      clarity,
-      mentalState,
-    };
-
-    setEntries((prev) => [newEntry, ...prev]);
-    setTitle("");
-    setContent("");
-    setMood(null);
-    setClarity(null);
-    setMentalState(null);
-    setSelectedId(newEntry.id);
+    try {
+      if (editingId) {
+        const res = await client.patch(`/journal/${editingId}`, payload);
+        const updated = normalizeEntry(res.data.data ?? res.data);
+        setEntries((prev) => prev.map((en) => en._id === editingId ? updated : en));
+        stopEditing();
+      } else {
+        const res = await client.post("/journal", payload);
+        const created = normalizeEntry(res.data.data ?? res.data);
+        setEntries((prev) => [created, ...prev]);
+        if (created.folder && !folders.find((f) => f.id === created.folder)) {
+          setFolders((prev) => [...prev, { id: created.folder, name: created.folder }]);
+        }
+        setSelectedId(created._id);
+        setTitle(""); setContent(""); setMood(null); setClarity(null); setMentalState(null);
+      }
+    } catch (err) {
+      console.error("Failed to save journal entry", err);
+    }
   }
 
-  function handleDeleteEntry(id) {
-    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  async function handleDeleteEntry(id) {
+    const updated = entries.filter((e) => e._id !== id);
+    setEntries(updated);
     if (selectedId === id) setSelectedId(null);
     if (editingId === id) stopEditing();
+    if (!isAuthenticated) { guestSaveEntries(updated); return; }
+    try {
+      await client.delete(`/journal/${id}`);
+    } catch (err) {
+      console.error("Failed to delete entry", err);
+      fetchEntries();
+    }
   }
 
-  const selectedEntry =
-    entries.find((entry) => entry.id === selectedId) || entries[0] || null;
+  const selectedEntry = entries.find((e) => e._id === selectedId) || entries[0] || null;
+
+  const activeFolderId    = activeFolder;
+  const setActiveFolderId = setActiveFolder;
 
   return {
     entries,
     filteredEntries,
+    loading,
     folders,
     activeFolderId,
     setActiveFolderId,
@@ -164,5 +252,6 @@ export default function useJournal() {
     selectedEntry,
     handleAddEntry,
     handleDeleteEntry,
+    refetch: fetchEntries,
   };
 }

@@ -107,7 +107,7 @@ export default function Journal() {
             </button>
 
             {folders.map((folder) => {
-              const count = entries.filter((e) => e.folderId === folder.id).length;
+              const count = entries.filter((e) => e.folder === folder.id).length;
               return (
                 <div key={folder.id} className="journal-folder-row">
                   <button
@@ -147,14 +147,14 @@ export default function Journal() {
               ) : (
                 filteredEntries.map((entry) => (
                   <motion.button
-                    key={entry.id}
+                    key={entry._id}
                     type="button"
                     className={
-                      selectedId === entry.id || (!selectedId && selectedEntry?.id === entry.id)
+                      selectedId === entry._id || (!selectedId && selectedEntry?._id === entry._id)
                         ? "journal-note-item active"
                         : "journal-note-item"
                     }
-                    onClick={() => setSelectedId(entry.id)}
+                    onClick={() => setSelectedId(entry._id)}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -12, scale: 0.97 }}
@@ -166,12 +166,12 @@ export default function Journal() {
                     {entry.content && (
                       <p className="journal-note-preview">{entry.content}</p>
                     )}
-                    {activeFolderId === null && entry.folderId && (
+                    {activeFolderId === null && entry.folder && (
                       <span className="journal-note-folder-pill">
-                        {folders.find((f) => f.id === entry.folderId)?.name}
+                        {entry.folder}
                       </span>
                     )}
-                    <span>{entry.createdAt}</span>
+                    <span>{entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : ""}</span>
                   </motion.button>
                 ))
               )}
@@ -256,7 +256,7 @@ export default function Journal() {
                   className="journal-folder-select"
                   value={activeFolderId ?? ""}
                   onChange={(e) =>
-                    setActiveFolderId(e.target.value ? Number(e.target.value) : null)
+                    setActiveFolderId(e.target.value || null)
                   }
                 >
                   <option value="">No folder</option>

@@ -79,7 +79,7 @@ export default function TaskCard() {
         <AnimatePresence>
           {tasks.slice(0, 5).map((task) => (
             <TaskItem
-              key={task.id}
+              key={task._id}
               task={task}
               onToggle={handleToggleTask}
               onEdit={handleEditTask}

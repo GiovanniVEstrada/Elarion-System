@@ -1,7 +1,10 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { motion } from "motion/react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
+  const { user, isGuest, logout } = useAuth();
+
   const linkClass = ({ isActive }) =>
     isActive ? "nav-link active" : "nav-link";
 
@@ -21,36 +24,39 @@ export default function Navbar() {
       </motion.div>
 
       <div className="navbar-links">
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-          <NavLink to="/" end className={linkClass}>
-            Dashboard
-          </NavLink>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-          <NavLink to="/tasks" className={linkClass}>
-            Tasks
-          </NavLink>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-          <NavLink to="/journal" className={linkClass}>
-            Journal
-          </NavLink>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-          <NavLink to="/calendar" className={linkClass}>
-            Calendar
-          </NavLink>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-          <NavLink to="/reflect" className={linkClass}>
-            Reflect
-          </NavLink>
-        </motion.div>
+        {[
+          { to: "/",         label: "Dashboard", end: true  },
+          { to: "/tasks",    label: "Tasks",     end: false },
+          { to: "/journal",  label: "Journal",   end: false },
+          { to: "/calendar", label: "Calendar",  end: false },
+          { to: "/habits",   label: "Habits",    end: false },
+          { to: "/moods",    label: "Mood",      end: false },
+          { to: "/reflect",  label: "Reflect",   end: false },
+        ].map(({ to, label, end }) => (
+          <motion.div key={to} whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+            <NavLink to={to} end={end} className={linkClass}>{label}</NavLink>
+          </motion.div>
+        ))}
       </div>
+
+      {user ? (
+        <div className="navbar-user">
+          <span className="navbar-username">{user.name}</span>
+          <motion.button
+            className="nav-link navbar-logout"
+            onClick={logout}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Sign out
+          </motion.button>
+        </div>
+      ) : isGuest ? (
+        <div className="navbar-user">
+          <Link to="/login" className="nav-link">Log in</Link>
+          <Link to="/register" className="nav-link navbar-logout" style={{ color: "rgba(181,140,255,0.9)" }}>Sign up</Link>
+        </div>
+      ) : null}
     </motion.nav>
   );
 }

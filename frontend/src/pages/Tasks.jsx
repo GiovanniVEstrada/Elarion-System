@@ -121,7 +121,7 @@ export default function Tasks() {
               <AnimatePresence>
                 {filteredTasks.map((task) => (
                   <TaskItem
-                    key={task.id}
+                    key={task._id}
                     task={task}
                     onToggle={handleToggleTask}
                     onEdit={handleEditTask}

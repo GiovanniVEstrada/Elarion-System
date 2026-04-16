@@ -112,6 +112,26 @@
   box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.06);
 }
 
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.navbar-username {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.navbar-logout {
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+}
+
 @media (max-width: 768px) {
   .navbar { display: none; }
   .app-shell { padding-bottom: 72px; }

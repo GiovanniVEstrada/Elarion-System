@@ -1,0 +1,250 @@
+/* ── Auth Shell ── */
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 36px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(173, 216, 230, 0.16);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.auth-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: 0.02em;
+}
+
+.auth-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+}
+
+/* ── Form ── */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(6, 19, 31, 0.5);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-input::placeholder {
+  color: rgba(182, 208, 218, 0.4);
+}
+
+.auth-input:focus {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12);
+}
+
+.auth-error {
+  font-size: 0.85rem;
+  color: #ff7070;
+  margin: 0;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--accent-rgb), 0.2),
+    rgba(126, 240, 211, 0.16)
+  );
+  color: var(--text-h);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 48px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-btn:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.2), 0 8px 18px rgba(var(--accent-rgb), 0.12);
+}
+
+.auth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Switch link ── */
+
+.auth-switch {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.auth-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 28px 20px;
+  }
+}
+
+/* ── Guest Banner ── */
+
+.guest-banner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(181, 140, 255, 0.1);
+  border-bottom: 1px solid rgba(181, 140, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  flex-wrap: wrap;
+}
+
+.guest-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.guest-banner-btn {
+  padding: 5px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-h);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  cursor: pointer;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.guest-banner-btn--primary {
+  background: rgba(181, 140, 255, 0.18);
+  border-color: rgba(181, 140, 255, 0.3);
+  color: rgba(181, 140, 255, 0.95);
+}
+
+.guest-banner-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.guest-banner-btn--primary:hover {
+  background: rgba(181, 140, 255, 0.26);
+}
+
+/* ── Guest prompt (Habits/Moods pages) ── */
+
+.guest-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.guest-prompt p {
+  font-size: 0.95rem;
+  opacity: 0.7;
+  margin: 0;
+  max-width: 280px;
+}
+
+.guest-prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.guest-prompt-btn {
+  padding: 9px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.guest-prompt-btn--primary {
+  background: rgba(181, 140, 255, 0.16);
+  border-color: rgba(181, 140, 255, 0.28);
+  color: rgba(181, 140, 255, 0.95);
+}
+
+.guest-prompt-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.guest-prompt-btn--primary:hover { background: rgba(181, 140, 255, 0.24); }

@@ -3,44 +3,44 @@ import { motion, AnimatePresence } from "motion/react";
 
 const ENERGY_COLORS = { low: "#64dc82", medium: "#ffc83c", high: "#ff5a5a" };
 const ALIGNMENT_OPTIONS = [
-  { score: 1, label: "Off", cls: "alignment-btn--off" },
+  { score: 1, label: "Off",     cls: "alignment-btn--off"     },
   { score: 2, label: "Neutral", cls: "alignment-btn--neutral" },
   { score: 3, label: "Aligned", cls: "alignment-btn--aligned" },
 ];
-const ALIGNMENT_LABELS = { 1: "Off", 2: "Neutral", 3: "Aligned" };
+const ALIGNMENT_LABELS  = { 1: "Off", 2: "Neutral", 3: "Aligned" };
 const ALIGNMENT_CLASSES = { 1: "alignment-badge--off", 2: "alignment-badge--neutral", 3: "alignment-badge--aligned" };
 
 export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(task.text);
+  const [draft, setDraft] = useState(task.title);
   const [showRating, setShowRating] = useState(false);
 
   function handleSave() {
-    if (draft.trim()) onEdit(task.id, draft);
+    if (draft.trim()) onEdit(task._id, draft);
     setEditing(false);
   }
 
   function handleKeyDown(e) {
-    if (e.key === "Enter") handleSave();
-    if (e.key === "Escape") { setDraft(task.text); setEditing(false); }
+    if (e.key === "Enter")  handleSave();
+    if (e.key === "Escape") { setDraft(task.title); setEditing(false); }
   }
 
   function handleCheck() {
     if (!task.completed) {
       setShowRating(true);
     } else {
-      onToggle(task.id);
+      onToggle(task._id);
     }
   }
 
   function handleRate(score) {
-    onRate(task.id, score);
-    onToggle(task.id);
+    onRate(task._id, score);
+    onToggle(task._id);
     setShowRating(false);
   }
 
   function handleSkipRating() {
-    onToggle(task.id);
+    onToggle(task._id);
     setShowRating(false);
   }
 
@@ -73,7 +73,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         <motion.button
           className="task-cancel-btn"
           type="button"
-          onMouseDown={(e) => { e.preventDefault(); setDraft(task.text); setEditing(false); }}
+          onMouseDown={(e) => { e.preventDefault(); setDraft(task.title); setEditing(false); }}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -96,7 +96,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
           {task.energyLevel && (
             <span className="task-energy-dot" style={{ background: ENERGY_COLORS[task.energyLevel] }} />
           )}
-          <span className="task-text">{task.text}</span>
+          <span className="task-text">{task.title}</span>
         </div>
         <div className="task-rating-row">
           <span className="alignment-prompt-label">Was this aligned?</span>
@@ -139,7 +139,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
             <span className="task-energy-dot" style={{ background: ENERGY_COLORS[task.energyLevel] }} />
           )}
           <span className={task.completed ? "task-text completed" : "task-text"}>
-            {task.text}
+            {task.title}
           </span>
         </span>
       </label>
@@ -166,7 +166,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         <motion.button
           className="task-edit-btn"
           type="button"
-          onClick={() => { setDraft(task.text); setEditing(true); }}
+          onClick={() => { setDraft(task.title); setEditing(true); }}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -176,7 +176,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         <motion.button
           className="task-delete-btn"
           type="button"
-          onClick={() => onDelete(task.id)}
+          onClick={() => onDelete(task._id)}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
         >

@@ -60,7 +60,7 @@ export default function JournalCard() {
           </motion.p>
         ) : (
           <JournalEntry
-            key={entries[0].id}
+            key={entries[0]._id}
             entry={entries[0]}
             onDelete={handleDeleteEntry}
           />

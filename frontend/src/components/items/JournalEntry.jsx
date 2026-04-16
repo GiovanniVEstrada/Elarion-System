@@ -2,6 +2,12 @@ import { motion } from "motion/react";
 
 const MOOD_EMOJIS = ["", "😔", "😕", "😐", "🙂", "😊"];
 
+function formatDate(raw) {
+  if (!raw) return "";
+  const d = new Date(raw);
+  return isNaN(d) ? raw : d.toLocaleString();
+}
+
 export default function JournalEntry({ entry, onDelete, onEdit, className = "journal-entry" }) {
   const hasMeta = entry.mood || entry.clarity || entry.mentalState;
 
@@ -37,13 +43,13 @@ export default function JournalEntry({ entry, onDelete, onEdit, className = "jou
       )}
 
       <div className="journal-entry-footer">
-        <span className="journal-entry-date">{entry.createdAt}</span>
+        <span className="journal-entry-date">{formatDate(entry.createdAt)}</span>
         <div style={{ display: "flex", gap: "8px" }}>
           {onEdit && (
             <motion.button
               className="journal-edit-btn"
               type="button"
-              onClick={() => onEdit(entry.id)}
+              onClick={() => onEdit(entry._id)}
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -53,7 +59,7 @@ export default function JournalEntry({ entry, onDelete, onEdit, className = "jou
           <motion.button
             className="journal-delete-btn"
             type="button"
-            onClick={() => onDelete(entry.id)}
+            onClick={() => onDelete(entry._id)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
