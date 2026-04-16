@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "motion/react";
 import { useCalendarContext } from "../context/CalendarContext";
+import { useMoodsContext, MOOD_OPTIONS } from "../context/MoodsContext";
+import { useAuth } from "../context/AuthContext";
 import PageShell from "../components/layout/PageShell";
 import SectionHeader from "../components/layout/SectionHeader";
 import client from "../api/client";
+import { tapAnim } from "../utils/motion";
 
 const MOOD_EMOJIS  = ["", "😔", "😕", "😐", "🙂", "😊"];
 const MOOD_COLORS  = ["", "#ff5a5a", "#ff9a5a", "#ffc83c", "#8de88d", "#64dc82"];
@@ -47,8 +51,17 @@ function DataBar({ label, value, max, color }) {
   );
 }
 
+function moodMeta(value) {
+  return MOOD_OPTIONS.find((m) => m.value === value) ?? { emoji: "•", label: value, color: "var(--text-soft)" };
+}
+
 export default function Reflect() {
   const { events } = useCalendarContext();
+  const { isGuest } = useAuth();
+  const {
+    todaysMood, selectedMood, setSelectedMood,
+    note, setNote, submitting, handleLog,
+  } = useMoodsContext();
   const [insights, setInsights] = useState({
     productivity: null,
     streaks: null,
@@ -114,6 +127,73 @@ export default function Reflect() {
         title="Reflect"
         subtitle="Patterns from your actions — what your choices reveal over time."
       />
+
+      {/* ── Mood check-in ── */}
+      <motion.div
+        className="reflect-mood-checkin"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {isGuest ? (
+          <div className="reflect-mood-guest">
+            <span>Sign in to log your mood and track wellbeing over time.</span>
+            <div className="guest-banner-actions">
+              <Link to="/register" className="guest-banner-btn guest-banner-btn--primary">Sign up</Link>
+              <Link to="/login" className="guest-banner-btn">Log in</Link>
+            </div>
+          </div>
+        ) : todaysMood ? (
+          <div className="mood-today-logged">
+            <span className="mood-today-emoji">{moodMeta(todaysMood.mood).emoji}</span>
+            <div>
+              <p className="mood-today-label">Today: <strong>{moodMeta(todaysMood.mood).label}</strong></p>
+              {todaysMood.note && <p className="mood-today-note">"{todaysMood.note}"</p>}
+            </div>
+          </div>
+        ) : (
+          <form className="reflect-mood-form" onSubmit={handleLog}>
+            <span className="reflect-mood-prompt">How are you feeling today?</span>
+            <div className="mood-quick-btns mood-quick-btns--compact">
+              {MOOD_OPTIONS.map((opt) => (
+                <motion.button
+                  key={opt.value}
+                  type="button"
+                  className={`mood-quick-btn${selectedMood === opt.value ? " active" : ""}`}
+                  style={{ "--mood-color": opt.color }}
+                  onClick={() => setSelectedMood(selectedMood === opt.value ? null : opt.value)}
+                  title={opt.label}
+                  {...tapAnim}
+                >
+                  <span className="mood-quick-emoji">{opt.emoji}</span>
+                  <span className="mood-quick-label">{opt.label}</span>
+                </motion.button>
+              ))}
+            </div>
+            <AnimatePresence>
+              {selectedMood && (
+                <motion.div
+                  className="mood-note-row"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                >
+                  <input
+                    className="task-input"
+                    type="text"
+                    placeholder="Add a note (optional)"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                  <motion.button className="task-add-btn" type="submit" disabled={submitting} {...tapAnim}>
+                    {submitting ? "…" : "Log"}
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </form>
+        )}
+      </motion.div>
 
       <motion.div
         className="reflect-shell"

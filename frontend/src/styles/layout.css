@@ -185,6 +185,38 @@
   line-height: 1;
 }
 
+/* ── Page Tab Bar (Tasks/Habits switcher) ── */
+
+.page-tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.page-tab-btn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  min-height: 38px;
+}
+
+.page-tab-btn:hover {
+  color: var(--text-h);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.page-tab-btn.active {
+  color: var(--text-h);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.28);
+}
+
 /* ── Footer ── */
 
 .footer {

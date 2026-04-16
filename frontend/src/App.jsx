@@ -39,8 +39,6 @@ function AnimatedRoutes() {
           <Route path="/tasks"    element={<Tasks />} />
           <Route path="/journal"  element={<Journal />} />
           <Route path="/calendar" element={<Calendar />} />
-          <Route path="/habits"   element={<Habits />} />
-          <Route path="/moods"    element={<Moods />} />
           <Route path="/reflect"  element={<Reflect />} />
         </Routes>
       </motion.div>

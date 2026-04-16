@@ -2,6 +2,52 @@
 
 .reflect-shell { width: 100%; }
 
+/* ── Mood check-in widget ── */
+
+.reflect-mood-checkin {
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: var(--glass-shadow);
+}
+
+.reflect-mood-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reflect-mood-prompt {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.mood-quick-btns--compact .mood-quick-btn {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+}
+
+.mood-note-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.reflect-mood-guest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
 .reflect-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -29,8 +29,6 @@ export default function Navbar() {
           { to: "/tasks",    label: "Tasks",     end: false },
           { to: "/journal",  label: "Journal",   end: false },
           { to: "/calendar", label: "Calendar",  end: false },
-          { to: "/habits",   label: "Habits",    end: false },
-          { to: "/moods",    label: "Mood",      end: false },
           { to: "/reflect",  label: "Reflect",   end: false },
         ].map(({ to, label, end }) => (
           <motion.div key={to} whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
