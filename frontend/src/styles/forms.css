@@ -163,6 +163,42 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* ── Touch Targets ── */
+
+.task-add-btn,
+.journal-add-btn,
+.calendar-add-btn,
+.task-delete-btn,
+.task-edit-btn,
+.task-save-btn,
+.task-cancel-btn,
+.task-clear-btn,
+.journal-delete-btn,
+.journal-edit-btn,
+.journal-cancel-btn,
+.calendar-delete-btn,
+.calendar-edit-btn,
+.calendar-cancel-btn,
+.tasks-filter-btn,
+.calendar-filter-btn {
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .task-input,
+  .calendar-input,
+  .calendar-date-input,
+  .calendar-time-input,
+  .journal-title-input {
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+    padding: 14px;
+  }
+
+  .journal-textarea {
+    font-size: 16px;
+  }
+}
+
 .task-add-btn:hover,
 .journal-add-btn:hover,
 .calendar-add-btn:hover {

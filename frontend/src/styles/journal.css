@@ -6,6 +6,42 @@
   gap: 20px;
 }
 
+/* ── Sidebar Toggle (mobile only) ── */
+
+.journal-sidebar-toggle {
+  display: none;
+  width: 100%;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  min-height: 44px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.journal-sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(181, 140, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .journal-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .journal-sidebar-hidden {
+    display: none;
+  }
+}
+
 .journal-sidebar {
   height: fit-content;
 }

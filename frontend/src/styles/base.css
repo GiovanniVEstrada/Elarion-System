@@ -124,6 +124,12 @@ body::after {
   transform: translate3d(0, var(--bg-shift-2), 0);
 }
 
+@media (max-width: 480px) {
+  :root {
+    font: 16px/145% var(--sans);
+  }
+}
+
 h1,
 h2,
 h3 {

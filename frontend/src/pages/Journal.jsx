@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useJournalContext } from "../context/JournalContext";
 import PageShell from "../components/layout/PageShell";
@@ -6,6 +7,7 @@ import JournalEntry from "../components/items/JournalEntry";
 import { tapAnim, hoverAnim } from "../utils/motion";
 
 export default function Journal() {
+  const [showSidebar, setShowSidebar] = useState(false);
   const {
     entries,
     filteredEntries,
@@ -57,7 +59,15 @@ export default function Journal() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.38 }}
       >
-        <aside className="journal-sidebar">
+        <button
+          type="button"
+          className="journal-sidebar-toggle"
+          onClick={() => setShowSidebar((s) => !s)}
+        >
+          {showSidebar ? "▲ Hide notes" : "▼ Browse notes"}
+        </button>
+
+        <aside className={`journal-sidebar${showSidebar ? "" : " journal-sidebar-hidden"}`}>
 
           {/* Folders */}
           <div className="journal-folders">
