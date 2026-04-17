@@ -1,3 +1,17 @@
+/* ── Background Image Layers (time-of-day crossfade) ── */
+
+.bg-img-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 90s ease;
+  will-change: opacity;
+}
+
 /* ── Background Orbs ── */
 
 .bg-orb {
@@ -25,7 +39,8 @@
   height: 360px;
   top: 22%;
   right: 6%;
-  background: rgba(126, 240, 211, 0.12);
+  background: rgba(var(--orb-a-rgb), 0.12);
+  transition: background 8s ease;
   transform: translate3d(0, var(--bg-shift-2), 0);
   animation: liquidDriftSoft 18s ease-in-out infinite;
 }
@@ -35,7 +50,8 @@
   height: 300px;
   bottom: 8%;
   left: 40%;
-  background: rgba(181, 140, 255, 0.12);
+  background: rgba(var(--orb-b-rgb), 0.12);
+  transition: background 8s ease;
   transform: translate3d(0, calc(var(--bg-shift-2) * 0.6), 0);
   animation: liquidDrift 20s ease-in-out infinite;
 }
