@@ -37,16 +37,17 @@ function getGreeting() {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { events } = useCalendarContext();
   const [overview, setOverview] = useState(null);
 
   useEffect(() => {
+    if (isGuest) return;
     client
       .get("/insights/overview")
       .then((res) => setOverview(res.data))
       .catch((err) => console.error("Failed to fetch overview", err));
-  }, []);
+  }, [isGuest]);
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long", year: "numeric", month: "long", day: "numeric",

@@ -1,0 +1,20 @@
+# Dependencies
+frontend/node_modules/
+ion-api/node_modules/
+
+# Environment variables
+frontend/.env
+frontend/.env.local
+ion-api/.env
+ion-api/.env.local
+
+# Build output
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

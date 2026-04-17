@@ -33,18 +33,21 @@ export default function Tasks() {
     newTaskIntent, setNewTaskIntent,
     filter, setFilter,
     filteredTasks, activeCount, completedCount,
+    loading: tasksLoading, error: tasksError,
     handleAddTask, handleToggleTask, handleEditTask,
     handleRateTask, handleDeleteTask, handleClearCompleted,
+    refetch: refetchTasks,
   } = useTasksContext();
 
   const {
-    habits, loading: habitsLoading,
+    habits, loading: habitsLoading, error: habitsError,
     filter: habitFilter, setFilter: setHabitFilter,
     name, setName,
     description, setDescription,
     frequency, setFrequency,
     completedToday,
     handleAddHabit, handleComplete, handleArchive, handleDelete: handleDeleteHabit,
+    refetch: refetchHabits,
   } = useHabitsContext();
 
   const { isGuest } = useAuth();
@@ -148,7 +151,17 @@ export default function Tasks() {
             </div>
 
             <div className="tasks-page-list-wrap">
-              {filteredTasks.length === 0 ? (
+              {tasksLoading ? (
+                <div className="page-loading">
+                  <div className="loading-spinner" />
+                  <p>Loading...</p>
+                </div>
+              ) : tasksError ? (
+                <div className="page-error">
+                  <p>{tasksError}</p>
+                  <button onClick={refetchTasks}>Retry</button>
+                </div>
+              ) : filteredTasks.length === 0 ? (
                 <p className="tasks-page-empty">No tasks in this view.</p>
               ) : (
                 <ul className="task-list">
@@ -260,7 +273,15 @@ export default function Tasks() {
 
             <div className="tasks-page-list-wrap">
               {habitsLoading ? (
-                <p className="tasks-page-empty">Loading…</p>
+                <div className="page-loading">
+                  <div className="loading-spinner" />
+                  <p>Loading...</p>
+                </div>
+              ) : habitsError ? (
+                <div className="page-error">
+                  <p>{habitsError}</p>
+                  <button onClick={refetchHabits}>Retry</button>
+                </div>
               ) : habits.length === 0 ? (
                 <p className="tasks-page-empty">No habits yet. Add one above.</p>
               ) : (

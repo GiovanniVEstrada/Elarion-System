@@ -194,8 +194,9 @@
   background: rgba(255,255,255,0.04);
   color: var(--text-soft);
 }
-.entry-meta-chip--mood   { font-size: 0.95rem; padding: 1px 6px; background: transparent; border-color: transparent; }
-.entry-meta-chip--state  { background: rgba(var(--accent-rgb), 0.08); border-color: rgba(var(--accent-rgb), 0.2); color: var(--accent); }
+.entry-meta-chip--mood    { font-size: 0.95rem; padding: 1px 6px; background: transparent; border-color: transparent; }
+.entry-meta-chip--clarity { background: rgba(126, 240, 211, 0.08); border-color: rgba(126, 240, 211, 0.2); color: var(--accent-2); }
+.entry-meta-chip--state   { background: rgba(var(--accent-rgb), 0.08); border-color: rgba(var(--accent-rgb), 0.2); color: var(--accent); }
 
 /* Feeling picker (calendar form) */
 .feeling-picker { display: flex; gap: 6px; flex-wrap: wrap; }

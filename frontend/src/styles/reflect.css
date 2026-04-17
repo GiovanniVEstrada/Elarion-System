@@ -11,7 +11,7 @@
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
   box-shadow: var(--glass-shadow);
 }
 
@@ -62,7 +62,7 @@
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid rgba(255,255,255,0.07);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 22px 22px 20px;
   box-shadow: var(--glass-shadow);
@@ -140,7 +140,7 @@
 .data-bar-track {
   flex: 1;
   height: 5px;
-  background: rgba(255,255,255,0.06);
+  background: var(--border);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -217,8 +217,8 @@
   font-size: 0.75rem;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
   color: var(--text-soft);
   display: flex;
   align-items: center;

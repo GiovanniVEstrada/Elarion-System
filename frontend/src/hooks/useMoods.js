@@ -14,6 +14,7 @@ export default function useMoods() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [moods, setMoods] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [todaysMood, setTodaysMood] = useState(null);
 
   const [selectedMood, setSelectedMood] = useState(null);
@@ -25,6 +26,7 @@ export default function useMoods() {
   const fetchMoods = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
+    setError(null);
     try {
       const res = await client.get("/moods", { params: { limit: 50 } });
       const list = res.data.data ?? res.data;
@@ -35,6 +37,7 @@ export default function useMoods() {
       setTodaysMood(todays ?? null);
     } catch (err) {
       console.error("Failed to fetch moods", err);
+      setError(err.response?.data?.message || "Failed to load moods. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -96,6 +99,7 @@ export default function useMoods() {
   return {
     moods,
     loading,
+    error,
     todaysMood,
     selectedMood,
     setSelectedMood,

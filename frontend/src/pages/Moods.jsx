@@ -19,6 +19,7 @@ export default function Moods() {
   const {
     moods,
     loading,
+    error,
     todaysMood,
     selectedMood,
     setSelectedMood,
@@ -27,6 +28,7 @@ export default function Moods() {
     submitting,
     handleLog,
     handleDelete,
+    refetch,
   } = useMoodsContext();
   const { isGuest } = useAuth();
 
@@ -49,7 +51,7 @@ export default function Moods() {
       )}
 
       <motion.div
-        className="feature-page moods-page-shell"
+        className="moods-page-shell"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.38 }}
@@ -113,7 +115,15 @@ export default function Moods() {
         {/* ── History ── */}
         <div className="tasks-page-list-wrap">
           {loading ? (
-            <p className="tasks-page-empty">Loading…</p>
+            <div className="page-loading">
+              <div className="loading-spinner" />
+              <p>Loading...</p>
+            </div>
+          ) : error ? (
+            <div className="page-error">
+              <p>{error}</p>
+              <button onClick={refetch}>Retry</button>
+            </div>
           ) : moods.length === 0 ? (
             <p className="tasks-page-empty">No mood entries yet. Log your first one above.</p>
           ) : (

@@ -72,6 +72,10 @@ export default function Reflect() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isGuest) {
+      setLoading(false);
+      return;
+    }
     Promise.allSettled([
       client.get("/insights/productivity"),
       client.get("/insights/streaks"),
@@ -88,7 +92,7 @@ export default function Reflect() {
       });
       setLoading(false);
     });
-  }, []);
+  }, [isGuest]);
 
   // ── Local calendar stats (stays localStorage) ──────────────────
   const ratedEvents  = events.filter((e) => e.actualFeeling);

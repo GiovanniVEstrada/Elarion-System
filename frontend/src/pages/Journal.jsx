@@ -11,6 +11,8 @@ export default function Journal() {
   const {
     entries,
     filteredEntries,
+    loading,
+    error,
     folders,
     activeFolderId,
     setActiveFolderId,
@@ -40,10 +42,29 @@ export default function Journal() {
     selectedEntry,
     handleAddEntry,
     handleDeleteEntry,
+    refetch,
   } = useJournalContext();
 
   const MOOD_EMOJIS = ["😔", "😕", "😐", "🙂", "😊"];
   const MENTAL_STATES = ["focused", "calm", "creative", "tired", "scattered", "anxious", "energized"];
+
+  if (loading) return (
+    <PageShell>
+      <div className="page-loading">
+        <div className="loading-spinner" />
+        <p>Loading...</p>
+      </div>
+    </PageShell>
+  );
+
+  if (error) return (
+    <PageShell>
+      <div className="page-error">
+        <p>{error}</p>
+        <button onClick={refetch}>Retry</button>
+      </div>
+    </PageShell>
+  );
 
   return (
     <PageShell>
@@ -299,7 +320,7 @@ export default function Journal() {
             <AnimatePresence mode="wait">
               {selectedEntry ? (
                 <JournalEntry
-                  key={selectedEntry.id}
+                  key={selectedEntry._id}
                   entry={selectedEntry}
                   onDelete={handleDeleteEntry}
                   onEdit={startEditing}

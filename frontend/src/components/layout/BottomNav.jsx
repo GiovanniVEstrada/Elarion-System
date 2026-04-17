@@ -1,10 +1,13 @@
 import { NavLink } from "react-router-dom";
 
-const tabs = [
-  { to: "/",        end: true,  icon: "⊞", label: "Home"    },
+const LEFT_TABS = [
   { to: "/tasks",   end: false, icon: "✓", label: "Tasks"   },
   { to: "/journal", end: false, icon: "✎", label: "Journal" },
-  { to: "/reflect", end: false, icon: "✦", label: "Reflect" },
+];
+
+const RIGHT_TABS = [
+  { to: "/calendar", end: false, icon: "◫", label: "Calendar" },
+  { to: "/reflect",  end: false, icon: "✦", label: "Reflect"  },
 ];
 
 export default function BottomNav() {
@@ -13,7 +16,28 @@ export default function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      {tabs.map(({ to, end, icon, label }) => (
+      {LEFT_TABS.map(({ to, end, icon, label }) => (
+        <NavLink key={to} to={to} end={end} className={linkClass}>
+          <span className="bottom-nav-icon">{icon}</span>
+          <span>{label}</span>
+        </NavLink>
+      ))}
+
+      {/* Center Dashboard button */}
+      <div className="bottom-nav-center-slot">
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            isActive ? "bottom-nav-home active" : "bottom-nav-home"
+          }
+          aria-label="Dashboard"
+        >
+          <span className="bottom-nav-home-icon">⌂</span>
+        </NavLink>
+      </div>
+
+      {RIGHT_TABS.map(({ to, end, icon, label }) => (
         <NavLink key={to} to={to} end={end} className={linkClass}>
           <span className="bottom-nav-icon">{icon}</span>
           <span>{label}</span>

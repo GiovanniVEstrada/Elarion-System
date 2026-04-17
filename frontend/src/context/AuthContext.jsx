@@ -10,19 +10,25 @@ export function AuthProvider({ children }) {
 
   // On mount: verify stored token is still valid
   useEffect(() => {
-    if (!token) {
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
       setLoading(false);
       return;
     }
     client
       .get("/auth/me")
-      .then((res) => setUser(res.data.user ?? res.data))
+      .then((res) => {
+        // Support { success, data } shape and legacy flat shape
+        const payload = res.data?.data ?? res.data;
+        setUser(payload);
+      })
       .catch(() => {
         localStorage.removeItem("token");
         setToken(null);
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function saveToken(newToken) {
     localStorage.setItem("token", newToken);
@@ -31,15 +37,19 @@ export function AuthProvider({ children }) {
 
   async function register(name, email, password) {
     const res = await client.post("/auth/register", { name, email, password });
-    const { token, ...userData } = res.data;
-    saveToken(token);
+    // Support { success, data: { token, ...user } } shape
+    const payload = res.data?.data ?? res.data;
+    const { token: newToken, ...userData } = payload;
+    saveToken(newToken);
     setUser(userData);
   }
 
   async function login(email, password) {
     const res = await client.post("/auth/login", { email, password });
-    const { token, ...userData } = res.data;
-    saveToken(token);
+    // Support { success, data: { token, ...user } } shape
+    const payload = res.data?.data ?? res.data;
+    const { token: newToken, ...userData } = payload;
+    saveToken(newToken);
     setUser(userData);
   }
 
@@ -47,6 +57,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    window.location.href = "/login";
   }
 
   return (

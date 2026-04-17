@@ -20,6 +20,7 @@ export default function useJournal() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -45,6 +46,7 @@ export default function useJournal() {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const res = await client.get("/journal", { params: { limit: 100 } });
       const normalized = (res.data.data ?? res.data).map(normalizeEntry);
@@ -61,6 +63,7 @@ export default function useJournal() {
       setFolders(derived);
     } catch (err) {
       console.error("Failed to fetch journal entries", err);
+      setError(err.response?.data?.message || "Failed to load journal entries. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -223,6 +226,7 @@ export default function useJournal() {
     entries,
     filteredEntries,
     loading,
+    error,
     folders,
     activeFolderId,
     setActiveFolderId,

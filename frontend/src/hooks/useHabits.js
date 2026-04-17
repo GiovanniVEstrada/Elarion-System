@@ -13,6 +13,7 @@ export default function useHabits() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("active");
 
   const [name, setName] = useState("");
@@ -24,12 +25,14 @@ export default function useHabits() {
   const fetchHabits = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
+    setError(null);
     try {
       const params = filter === "active" ? { active: true } : {};
       const res = await client.get("/habits", { params });
       setHabits(res.data.data ?? res.data);
     } catch (err) {
       console.error("Failed to fetch habits", err);
+      setError(err.response?.data?.message || "Failed to load habits. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,6 +47,7 @@ export default function useHabits() {
 
   async function handleAddHabit(e) {
     e.preventDefault();
+    if (!isAuthenticated) return;
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
@@ -110,6 +114,7 @@ export default function useHabits() {
   return {
     habits,
     loading,
+    error,
     filter,
     setFilter,
     name,

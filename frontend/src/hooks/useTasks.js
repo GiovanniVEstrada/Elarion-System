@@ -12,6 +12,7 @@ export default function useTasks() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 50, totalPages: 1 });
   const [filters, setFilters] = useState({ completed: undefined, priority: undefined, sort: undefined });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [newTask, setNewTask] = useState("");
   const [newTaskEnergy, setNewTaskEnergy] = useState(null);
@@ -27,6 +28,7 @@ export default function useTasks() {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const params = { ...filters, ...overrides, limit: 50 };
       if (filter === "active")    params.completed = false;
@@ -36,6 +38,7 @@ export default function useTasks() {
       setPagination(res.data.pagination);
     } catch (err) {
       console.error("Failed to fetch tasks", err);
+      setError(err.response?.data?.message || "Failed to load tasks. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -161,6 +164,7 @@ export default function useTasks() {
   return {
     tasks,
     loading,
+    error,
     pagination,
     filters,
     setFilters,

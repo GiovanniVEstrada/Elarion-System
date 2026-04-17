@@ -22,6 +22,24 @@
   .reflect-grid {
     grid-template-columns: 1fr;
   }
+
+  .habits-page-shell,
+  .moods-page-shell {
+    gap: 14px;
+  }
+
+  .habit-item {
+    flex-wrap: wrap;
+  }
+
+  .habit-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .mood-quick-btns {
+    justify-content: center;
+  }
 }
 
 /* 480px — small phones */
