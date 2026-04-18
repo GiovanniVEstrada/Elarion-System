@@ -45,7 +45,7 @@ export default function Dashboard() {
     if (isGuest) return;
     client
       .get("/insights/overview")
-      .then((res) => setOverview(res.data))
+      .then((res) => setOverview(res.data.data))
       .catch((err) => console.error("Failed to fetch overview", err));
   }, [isGuest]);
 

@@ -84,11 +84,11 @@ export default function Reflect() {
       client.get("/insights/mood-summary"),
     ]).then(([prod, str, jf, hc, ms]) => {
       setInsights({
-        productivity:      prod.status   === "fulfilled" ? prod.value.data   : null,
-        streaks:           str.status    === "fulfilled" ? str.value.data    : null,
-        journalFrequency:  jf.status     === "fulfilled" ? jf.value.data     : null,
-        habitConsistency:  hc.status     === "fulfilled" ? hc.value.data     : null,
-        moodSummary:       ms.status     === "fulfilled" ? ms.value.data     : null,
+        productivity:      prod.status   === "fulfilled" ? prod.value.data.data   : null,
+        streaks:           str.status    === "fulfilled" ? str.value.data.data    : null,
+        journalFrequency:  jf.status     === "fulfilled" ? jf.value.data.data     : null,
+        habitConsistency:  hc.status     === "fulfilled" ? hc.value.data.data     : null,
+        moodSummary:       ms.status     === "fulfilled" ? ms.value.data.data     : null,
       });
       setLoading(false);
     });
