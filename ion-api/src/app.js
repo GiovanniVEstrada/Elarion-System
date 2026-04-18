@@ -12,6 +12,7 @@ const protect = require("./middleware/protect");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // General API rate limiter — 100 requests per 15 minutes
 const apiLimiter = rateLimit({
