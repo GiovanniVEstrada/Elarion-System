@@ -131,10 +131,10 @@ body::after {
     background-attachment: scroll;
   }
 
-  /* position:fixed pseudo-elements are unreliable on iOS Safari */
+  /* position:fixed with z-index:-1 is unreliable on iOS Safari; absolute works correctly */
   body::before,
   body::after {
-    display: none;
+    position: absolute;
   }
 }
 
