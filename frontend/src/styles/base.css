@@ -59,18 +59,18 @@ body {
   color: var(--text);
   overflow-x: hidden;
   position: relative;
-  background-color: var(--sky-0);
 
-  background:
+  /* background-color is a separate property so background-image cannot override it */
+  background-color: #030b14;
+  background-image:
     radial-gradient(circle at 12% 10%, rgba(var(--orb-a-rgb), 0.08), transparent 22%),
     radial-gradient(circle at 88% 12%, rgba(var(--accent-rgb), 0.10), transparent 20%),
     radial-gradient(circle at 50% 85%, rgba(var(--orb-b-rgb), 0.08), transparent 24%),
     linear-gradient(180deg, var(--sky-0) 0%, var(--sky-48) 48%, var(--sky-100) 100%);
-
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  transition: background 8s ease;
+  transition: background-image 8s ease;
 }
 
 body::before,
@@ -78,7 +78,6 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(3, 11, 20, 0.863);
   z-index: -1;
   pointer-events: none;
 }
@@ -127,13 +126,21 @@ body::after {
   transform: translate3d(0, var(--bg-shift-2), 0);
 }
 
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  /* position:fixed pseudo-elements are unreliable on iOS Safari */
+  body::before,
+  body::after {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   :root {
     font: 16px/145% var(--sans);
-  }
-
-  body {
-    background-attachment: scroll;
   }
 }
 
