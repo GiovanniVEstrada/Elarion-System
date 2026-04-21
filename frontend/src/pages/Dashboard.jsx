@@ -63,16 +63,21 @@ export default function Dashboard() {
 
   const summaryLine = useMemo(() => {
     const parts = [];
-    const active = overview
-      ? overview.totalTasks - overview.completedTasks
-      : null;
 
-    if (active === null) {
-      parts.push("Loading…");
-    } else if (active === 0) {
+    if (isGuest) {
       parts.push("No active tasks");
     } else {
-      parts.push(`${active} active task${active !== 1 ? "s" : ""}`);
+      const active = overview
+        ? overview.totalTasks - overview.completedTasks
+        : null;
+
+      if (active === null) {
+        parts.push("Loading…");
+      } else if (active === 0) {
+        parts.push("No active tasks");
+      } else {
+        parts.push(`${active} active task${active !== 1 ? "s" : ""}`);
+      }
     }
 
     if (todayEvents.length === 0) {
@@ -82,7 +87,7 @@ export default function Dashboard() {
     }
 
     return parts.join(" · ");
-  }, [overview, todayEvents]);
+  }, [overview, todayEvents, isGuest]);
 
   return (
     <div className="dashboard">

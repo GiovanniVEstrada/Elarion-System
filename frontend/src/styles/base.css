@@ -59,6 +59,7 @@ body {
   color: var(--text);
   overflow-x: hidden;
   position: relative;
+  background-color: var(--sky-0);
 
   background:
     radial-gradient(circle at 12% 10%, rgba(var(--orb-a-rgb), 0.08), transparent 22%),
@@ -129,6 +130,10 @@ body::after {
 @media (max-width: 480px) {
   :root {
     font: 16px/145% var(--sans);
+  }
+
+  body {
+    background-attachment: scroll;
   }
 }
 

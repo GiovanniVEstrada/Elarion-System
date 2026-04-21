@@ -180,21 +180,6 @@
   overflow: visible;
 }
 
-/* Notch cutout behind center button using a pseudo-element circle */
-.bottom-nav::before {
-  content: "";
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 72px;
-  height: 40px;
-  background: inherit;
-  border-radius: 0 0 50% 50% / 0 0 24px 24px;
-  border-top: none;
-  z-index: -1;
-  pointer-events: none;
-}
 
 @media (max-width: 768px) {
   .bottom-nav { display: flex; }
