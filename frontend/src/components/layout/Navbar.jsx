@@ -40,6 +40,11 @@ export default function Navbar() {
       {user ? (
         <div className="navbar-user">
           <span className="navbar-username">{user.name}</span>
+          <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+              Settings
+            </NavLink>
+          </motion.div>
           <motion.button
             className="nav-link navbar-logout"
             onClick={logout}

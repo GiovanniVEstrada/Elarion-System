@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useToastEmitter } from "../components/Toast";
 
 export const MOOD_OPTIONS = [
   { value: "great",   label: "Great",   emoji: "😊", color: "#64dc82" },
@@ -12,6 +13,7 @@ export const MOOD_OPTIONS = [
 
 export default function useMoods() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { showToast } = useToastEmitter();
   const [moods, setMoods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,6 +22,10 @@ export default function useMoods() {
   const [selectedMood, setSelectedMood] = useState(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [editingMoodId, setEditingMoodId] = useState(null);
+  const [editMood, setEditMood] = useState(null);
+  const [editNote, setEditNote] = useState("");
 
   // ── Fetch ────────────────────────────────────────────────────────
 
@@ -65,33 +71,52 @@ export default function useMoods() {
       setSelectedMood(null);
       setNote("");
     } catch (err) {
-      console.error("Failed to log mood", err);
+      showToast(err.response?.data?.message || "Failed to log mood.", "warn");
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function handleEdit(id, updates) {
+  function startEditingMood(entry) {
+    setEditingMoodId(entry._id);
+    setEditMood(entry.mood);
+    setEditNote(entry.note ?? "");
+  }
+
+  function stopEditingMood() {
+    setEditingMoodId(null);
+    setEditMood(null);
+    setEditNote("");
+  }
+
+  async function handleEdit(e) {
+    e.preventDefault();
+    if (!editingMoodId || !editMood) return;
     try {
-      const res = await client.patch(`/moods/${id}`, updates);
+      const res = await client.patch(`/moods/${editingMoodId}`, {
+        mood: editMood,
+        note: editNote.trim() || undefined,
+      });
       const updated = res.data.data ?? res.data;
-      setMoods((prev) => prev.map((m) => m._id === id ? updated : m));
+      setMoods((prev) => prev.map((m) => m._id === editingMoodId ? updated : m));
       const today = new Date().toDateString();
       if (new Date(updated.date ?? updated.createdAt).toDateString() === today) {
         setTodaysMood(updated);
       }
+      stopEditingMood();
     } catch (err) {
-      console.error("Failed to edit mood", err);
+      showToast(err.response?.data?.message || "Failed to update mood.", "warn");
     }
   }
 
   async function handleDelete(id) {
     setMoods((prev) => prev.filter((m) => m._id !== id));
     if (todaysMood?._id === id) setTodaysMood(null);
+    if (editingMoodId === id) stopEditingMood();
     try {
       await client.delete(`/moods/${id}`);
     } catch (err) {
-      console.error("Failed to delete mood", err);
+      showToast("Failed to delete mood entry.", "warn");
       fetchMoods();
     }
   }
@@ -107,6 +132,13 @@ export default function useMoods() {
     setNote,
     submitting,
     handleLog,
+    editingMoodId,
+    editMood,
+    setEditMood,
+    editNote,
+    setEditNote,
+    startEditingMood,
+    stopEditingMood,
     handleEdit,
     handleDelete,
     refetch: fetchMoods,

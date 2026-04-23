@@ -17,6 +17,26 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+}
+
+.dashboard-settings-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 1.15rem;
+  color: var(--text-soft);
+  opacity: 0.55;
+  text-decoration: none;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 8px;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.dashboard-settings-btn:hover {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .dashboard-header h1,

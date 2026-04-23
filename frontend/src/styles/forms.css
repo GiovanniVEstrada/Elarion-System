@@ -223,3 +223,32 @@
   border-color: rgba(var(--accent-rgb), 0.32);
   box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.08);
 }
+
+/* ── Task search input ── */
+
+.task-search-input {
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(6, 19, 31, 0.5);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.2s ease, width 0.2s ease;
+}
+
+.task-search-input:focus {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  width: 220px;
+}
+
+.task-search-input::placeholder {
+  color: rgba(182, 208, 218, 0.35);
+}
+
+@media (max-width: 480px) {
+  .task-search-input { width: 100%; }
+  .task-search-input:focus { width: 100%; }
+}

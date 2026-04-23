@@ -53,6 +53,15 @@ const moodSchema = Joi.object({
   date: Joi.date().optional().allow(null),
 });
 
+const updateMeSchema = Joi.object({
+  name: Joi.string().min(2).max(50).required(),
+});
+
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(6).required(),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -61,4 +70,6 @@ module.exports = {
   habitSchema,
   habitUpdateSchema,
   moodSchema,
+  updateMeSchema,
+  changePasswordSchema,
 };

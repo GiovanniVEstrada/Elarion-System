@@ -13,14 +13,26 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401: clear token and redirect to login
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+
+    if (status === 401) {
       localStorage.removeItem("token");
+      // Store the page they were on so we can redirect back after login
+      const attempted = window.location.pathname;
+      if (attempted !== "/login" && attempted !== "/register") {
+        sessionStorage.setItem("redirectAfterLogin", attempted);
+      }
+      window.dispatchEvent(new CustomEvent("auth:expired"));
       window.location.href = "/login";
     }
+
+    if (status === 429) {
+      window.dispatchEvent(new CustomEvent("api:ratelimit"));
+    }
+
     return Promise.reject(error);
   }
 );

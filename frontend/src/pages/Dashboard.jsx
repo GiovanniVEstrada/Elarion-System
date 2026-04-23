@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import TaskCard from "../features/tasks/TaskCard";
 import JournalCard from "../features/journal/JournalCard";
@@ -98,6 +99,9 @@ export default function Dashboard() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <div className="dashboard-title-group">
+          <Link to="/settings" className="dashboard-settings-btn" aria-label="Settings">
+            ⚙
+          </Link>
           <motion.p
             className="dashboard-greeting"
             initial={{ opacity: 0, y: 6 }}

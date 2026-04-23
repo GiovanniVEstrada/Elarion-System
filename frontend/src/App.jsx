@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { AuthProvider } from "./context/AuthContext";
@@ -12,39 +12,48 @@ import GuestBanner from "./components/layout/GuestBanner";
 import Navbar from "./components/layout/Navbar";
 import BottomNav from "./components/layout/BottomNav";
 import Footer from "./components/layout/Footer";
-import Dashboard from "./pages/Dashboard";
-import Tasks from "./pages/Tasks";
-import Journal from "./pages/Journal";
-import Calendar from "./pages/Calendar";
-import Habits from "./pages/Habits";
-import Moods from "./pages/Moods";
-import Reflect from "./pages/Reflect";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import OfflineBanner from "./components/layout/OfflineBanner";
+import ToastContainer from "./components/Toast";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Tasks     = lazy(() => import("./pages/Tasks"));
+const Journal   = lazy(() => import("./pages/Journal"));
+const Calendar  = lazy(() => import("./pages/Calendar"));
+const Habits    = lazy(() => import("./pages/Habits"));
+const Moods     = lazy(() => import("./pages/Moods"));
+const Reflect   = lazy(() => import("./pages/Reflect"));
+const Login     = lazy(() => import("./pages/Login"));
+const Register  = lazy(() => import("./pages/Register"));
+const Settings  = lazy(() => import("./pages/Settings"));
+const NotFound  = lazy(() => import("./pages/NotFound"));
 
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, scale: 0.98, y: 24 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.985, y: -16 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Routes location={location}>
-          <Route path="/"         element={<Dashboard />} />
-          <Route path="/tasks"    element={<Tasks />} />
-          <Route path="/journal"  element={<Journal />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/habits"   element={<Habits />} />
-          <Route path="/moods"    element={<Moods />} />
-          <Route path="/reflect"  element={<Reflect />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    <Suspense fallback={null}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, scale: 0.98, y: 24 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.985, y: -16 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Routes location={location}>
+            <Route path="/"         element={<Dashboard />} />
+            <Route path="/tasks"    element={<Tasks />} />
+            <Route path="/journal"  element={<Journal />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/habits"   element={<Habits />} />
+            <Route path="/moods"    element={<Moods />} />
+            <Route path="/reflect"  element={<Reflect />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*"         element={<NotFound />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
+    </Suspense>
   );
 }
 
@@ -74,11 +83,13 @@ function AppShell() {
                 <div className="bg-orb bg-orb-1" />
                 <div className="bg-orb bg-orb-2" />
                 <div className="bg-orb bg-orb-3" />
+                <OfflineBanner />
                 <GuestBanner />
                 <Navbar />
                 <BottomNav />
                 <AnimatedRoutes />
                 <Footer />
+                <ToastContainer />
               </div>
             </MoodsProvider>
           </HabitsProvider>
@@ -92,21 +103,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public routes — no data providers mount here */}
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <Suspense fallback={null}>
+          <Routes>
+            {/* Public routes — no data providers mount here */}
+            <Route path="/login"    element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected — providers only mount after auth is confirmed */}
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <AppShell />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            {/* Protected — providers only mount after auth is confirmed */}
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <AppShell />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

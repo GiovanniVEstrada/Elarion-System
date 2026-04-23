@@ -350,9 +350,8 @@
 
 .mood-history-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px 16px;
   border-radius: 16px;
   background: rgba(6, 19, 31, 0.3);
@@ -440,3 +439,36 @@
 .mood-today-label { font-size: 0.9rem; color: var(--text-soft); margin: 0; }
 .mood-today-label strong { color: var(--text-h); }
 .mood-today-note { font-size: 0.82rem; color: var(--text-soft); font-style: italic; margin: 4px 0 0; }
+
+/* ── Mood item actions + edit form ── */
+
+.mood-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.mood-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.mood-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mood-quick-btns--compact .mood-quick-btn {
+  padding: 6px 10px;
+  min-height: 36px;
+}
+
+.mood-quick-btns--compact .mood-quick-label {
+  display: none;
+}

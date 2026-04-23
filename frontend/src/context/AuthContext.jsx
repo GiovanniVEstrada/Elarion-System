@@ -60,6 +60,20 @@ export function AuthProvider({ children }) {
     window.location.href = "/login";
   }
 
+  async function updateUser(name) {
+    const res = await client.patch("/auth/me", { name });
+    const updated = res.data?.data ?? res.data;
+    setUser((prev) => ({ ...prev, name: updated.name }));
+  }
+
+  async function deleteAccount() {
+    await client.delete("/auth/me");
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+    window.location.href = "/register";
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -71,6 +85,8 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
+        updateUser,
+        deleteAccount,
       }}
     >
       {children}

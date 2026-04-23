@@ -4,6 +4,7 @@ import { useMoodsContext, MOOD_OPTIONS } from "../context/MoodsContext";
 import { useAuth } from "../context/AuthContext";
 import PageShell from "../components/layout/PageShell";
 import SectionHeader from "../components/layout/SectionHeader";
+import SkeletonList from "../components/SkeletonList";
 import { tapAnim } from "../utils/motion";
 
 function moodMeta(value) {
@@ -27,6 +28,14 @@ export default function Moods() {
     setNote,
     submitting,
     handleLog,
+    editingMoodId,
+    editMood,
+    setEditMood,
+    editNote,
+    setEditNote,
+    startEditingMood,
+    stopEditingMood,
+    handleEdit,
     handleDelete,
     refetch,
   } = useMoodsContext();
@@ -115,10 +124,7 @@ export default function Moods() {
         {/* ── History ── */}
         <div className="tasks-page-list-wrap">
           {loading ? (
-            <div className="page-loading">
-              <div className="loading-spinner" />
-              <p>Loading...</p>
-            </div>
+            <SkeletonList count={4} />
           ) : error ? (
             <div className="page-error">
               <p>{error}</p>
@@ -140,34 +146,73 @@ export default function Moods() {
                       exit={{ opacity: 0, x: -12, scale: 0.97 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="mood-history-left">
-                        <span
-                          className="mood-history-emoji"
-                          style={{ color: meta.color }}
+                      <div className="mood-item-top">
+                        <div className="mood-history-left">
+                          <span className="mood-history-emoji" style={{ color: meta.color }}>
+                            {meta.emoji}
+                          </span>
+                          <div className="mood-history-info">
+                            <span className="mood-history-label" style={{ color: meta.color }}>
+                              {meta.label}
+                            </span>
+                            {entry.note && (
+                              <span className="mood-history-note">"{entry.note}"</span>
+                            )}
+                            <span className="mood-history-date">
+                              {formatDate(entry.date ?? entry.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mood-item-actions">
+                        <motion.button
+                          type="button"
+                          className="task-delete-btn"
+                          onClick={() => startEditingMood(entry)}
+                          title="Edit"
+                          {...tapAnim}
                         >
-                          {meta.emoji}
-                        </span>
-                        <div className="mood-history-info">
-                          <span className="mood-history-label" style={{ color: meta.color }}>
-                            {meta.label}
-                          </span>
-                          {entry.note && (
-                            <span className="mood-history-note">"{entry.note}"</span>
-                          )}
-                          <span className="mood-history-date">
-                            {formatDate(entry.date ?? entry.createdAt)}
-                          </span>
+                          Edit
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          className="task-delete-btn"
+                          onClick={() => handleDelete(entry._id)}
+                          title="Delete"
+                          {...tapAnim}
+                        >
+                          ×
+                        </motion.button>
                         </div>
                       </div>
-                      <motion.button
-                        type="button"
-                        className="task-delete-btn"
-                        onClick={() => handleDelete(entry._id)}
-                        title="Delete"
-                        {...tapAnim}
-                      >
-                        ×
-                      </motion.button>
+                      {editingMoodId === entry._id && (
+                        <form className="mood-edit-form" onSubmit={handleEdit}>
+                          <div className="mood-quick-btns mood-quick-btns--compact">
+                            {MOOD_OPTIONS.map((opt) => (
+                              <motion.button
+                                key={opt.value}
+                                type="button"
+                                className={`mood-quick-btn${editMood === opt.value ? " active" : ""}`}
+                                style={{ "--mood-color": opt.color }}
+                                onClick={() => setEditMood(opt.value)}
+                                {...tapAnim}
+                              >
+                                <span className="mood-quick-emoji">{opt.emoji}</span>
+                              </motion.button>
+                            ))}
+                          </div>
+                          <input
+                            className="task-input"
+                            type="text"
+                            placeholder="Note (optional)"
+                            value={editNote}
+                            onChange={(e) => setEditNote(e.target.value)}
+                          />
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <motion.button className="task-add-btn" type="submit" {...tapAnim}>Save</motion.button>
+                            <motion.button type="button" className="task-delete-btn" onClick={stopEditingMood} {...tapAnim}>Cancel</motion.button>
+                          </div>
+                        </form>
+                      )}
                     </motion.li>
                   );
                 })}

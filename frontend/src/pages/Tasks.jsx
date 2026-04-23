@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import PageShell from "../components/layout/PageShell";
 import SectionHeader from "../components/layout/SectionHeader";
 import TaskItem from "../components/items/TaskItem";
+import SkeletonList from "../components/SkeletonList";
 import { tapAnim, hoverAnim } from "../utils/motion";
 
 const ENERGY_LEVELS = [
@@ -32,6 +33,7 @@ export default function Tasks() {
     newTaskEnergy, setNewTaskEnergy,
     newTaskIntent, setNewTaskIntent,
     filter, setFilter,
+    searchQuery, setSearchQuery,
     filteredTasks, activeCount, completedCount,
     loading: tasksLoading, error: tasksError,
     handleAddTask, handleToggleTask, handleEditTask,
@@ -143,6 +145,13 @@ export default function Tasks() {
                     </motion.button>
                   ))}
                 </div>
+                <input
+                  className="task-search-input"
+                  type="text"
+                  placeholder="Search tasks…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
                 <div className="tasks-page-stats">
                   <span>{activeCount} active</span>
                   <span>{completedCount} completed</span>
@@ -152,10 +161,7 @@ export default function Tasks() {
 
             <div className="tasks-page-list-wrap">
               {tasksLoading ? (
-                <div className="page-loading">
-                  <div className="loading-spinner" />
-                  <p>Loading...</p>
-                </div>
+                <SkeletonList count={4} />
               ) : tasksError ? (
                 <div className="page-error">
                   <p>{tasksError}</p>
@@ -273,10 +279,7 @@ export default function Tasks() {
 
             <div className="tasks-page-list-wrap">
               {habitsLoading ? (
-                <div className="page-loading">
-                  <div className="loading-spinner" />
-                  <p>Loading...</p>
-                </div>
+                <SkeletonList count={3} />
               ) : habitsError ? (
                 <div className="page-error">
                   <p>{habitsError}</p>
@@ -318,6 +321,7 @@ export default function Tasks() {
                               className={`habit-complete-btn${done ? " done" : ""}`}
                               onClick={() => handleComplete(habit._id)}
                               disabled={done}
+                              aria-label={done ? "Completed today" : "Mark complete"}
                               title={done ? "Done today" : "Mark complete"}
                               {...tapAnim}
                             >

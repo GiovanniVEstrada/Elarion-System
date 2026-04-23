@@ -45,4 +45,7 @@ const journalEntrySchema = new mongoose.Schema(
   }
 );
 
+journalEntrySchema.index({ user: 1, createdAt: -1 });
+journalEntrySchema.index({ user: 1, folder: 1 });
+
 module.exports = mongoose.model("JournalEntry", journalEntrySchema);

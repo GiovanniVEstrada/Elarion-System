@@ -4,6 +4,7 @@ import { useJournalContext } from "../context/JournalContext";
 import PageShell from "../components/layout/PageShell";
 import SectionHeader from "../components/layout/SectionHeader";
 import JournalEntry from "../components/items/JournalEntry";
+import SkeletonList from "../components/SkeletonList";
 import { tapAnim, hoverAnim } from "../utils/motion";
 
 export default function Journal() {
@@ -50,10 +51,12 @@ export default function Journal() {
 
   if (loading) return (
     <PageShell>
-      <div className="page-loading">
-        <div className="loading-spinner" />
-        <p>Loading...</p>
-      </div>
+      <SectionHeader
+        kicker="Workspace"
+        title="Journal"
+        subtitle="Build thoughts, reflections, and notes in a space that can grow into something deeper later."
+      />
+      <SkeletonList count={5} />
     </PageShell>
   );
 

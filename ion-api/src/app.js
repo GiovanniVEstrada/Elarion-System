@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 const authRoutes = require("./routes/authRoutes");
@@ -8,6 +9,7 @@ const journalRoutes = require("./routes/journalRoutes");
 const habitRoutes = require("./routes/habitRoutes");
 const moodRoutes = require("./routes/moodRoutes");
 const insightRoutes = require("./routes/insightRoutes");
+const calendarRoutes = require("./routes/calendarRoutes");
 const protect = require("./middleware/protect");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -32,7 +34,11 @@ const authLimiter = rateLimit({
   message: { success: false, message: "Too many auth attempts, please try again later." },
 });
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGIN || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
 
 // Apply rate limiters before route definitions
@@ -50,6 +56,7 @@ app.use("/api/journal", protect, journalRoutes);
 app.use("/api/habits", protect, habitRoutes);
 app.use("/api/moods", protect, moodRoutes);
 app.use("/api/insights", protect, insightRoutes);
+app.use("/api/calendar", protect, calendarRoutes);
 
 app.use(errorHandler);
 

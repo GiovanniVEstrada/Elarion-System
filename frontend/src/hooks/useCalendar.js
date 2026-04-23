@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDate, formatTime } from "../utils/dateUtils";
+import client from "../api/client";
+
+const MIGRATION_KEY = "elarion-events";
+const MIGRATED_KEY  = "elarion-events-migrated";
 
 export default function useCalendar() {
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem("elarion-events");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -19,9 +21,50 @@ export default function useCalendar() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
 
+  const migrationRan = useRef(false);
+
   useEffect(() => {
-    localStorage.setItem("elarion-events", JSON.stringify(events));
-  }, [events]);
+    async function loadAndMigrate() {
+      // One-time migration: if old localStorage data exists and hasn't been migrated yet
+      if (!migrationRan.current && !localStorage.getItem(MIGRATED_KEY)) {
+        migrationRan.current = true;
+        const raw = localStorage.getItem(MIGRATION_KEY);
+        if (raw) {
+          try {
+            const oldEvents = JSON.parse(raw);
+            if (Array.isArray(oldEvents) && oldEvents.length > 0) {
+              await Promise.all(
+                oldEvents.map((ev) =>
+                  client.post("/calendar", {
+                    title: ev.title,
+                    date: ev.date,
+                    time: ev.time || "",
+                    expectedFeeling: ev.expectedFeeling || null,
+                    clientId: String(ev.id),
+                  }).catch(() => null)
+                )
+              );
+            }
+            localStorage.removeItem(MIGRATION_KEY);
+          } catch {
+            // Non-fatal — migration fails silently
+          }
+        }
+        localStorage.setItem(MIGRATED_KEY, "1");
+      }
+
+      try {
+        const res = await client.get("/calendar");
+        setEvents(sortEvents(res.data.data ?? []));
+      } catch {
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAndMigrate();
+  }, []);
 
   function sortEvents(list) {
     return [...list].sort((a, b) => {
@@ -32,7 +75,7 @@ export default function useCalendar() {
   }
 
   function startEditingEvent(id) {
-    const event = events.find((e) => e.id === id);
+    const event = events.find((e) => e._id === id);
     if (!event) return;
     setEventTitle(event.title);
     setEventDate(event.date);
@@ -49,65 +92,70 @@ export default function useCalendar() {
     setExpectedFeeling(null);
   }
 
-  function handleAddEvent(e) {
+  async function handleAddEvent(e) {
     e.preventDefault();
     const trimmedTitle = eventTitle.trim();
     if (!trimmedTitle || !eventDate) return;
 
     if (editingEventId) {
-      setEvents((prev) =>
-        sortEvents(
-          prev.map((ev) =>
-            ev.id === editingEventId
-              ? { ...ev, title: trimmedTitle, date: eventDate, time: eventTime, expectedFeeling }
-              : ev
-          )
-        )
-      );
+      try {
+        const res = await client.patch(`/calendar/${editingEventId}`, {
+          title: trimmedTitle,
+          date: eventDate,
+          time: eventTime,
+          expectedFeeling,
+        });
+        setEvents((prev) =>
+          sortEvents(prev.map((ev) => (ev._id === editingEventId ? res.data.data : ev)))
+        );
+      } catch { /* silent */ }
       stopEditingEvent();
       return;
     }
 
-    const newEvent = {
-      id: Date.now(),
-      title: trimmedTitle,
-      date: eventDate,
-      time: eventTime,
-      expectedFeeling,
-      actualFeeling: null,
-    };
-
-    setEvents(sortEvents([...events, newEvent]));
-    setEventTitle("");
-    setEventDate("");
-    setEventTime("");
-    setExpectedFeeling(null);
+    try {
+      const res = await client.post("/calendar", {
+        title: trimmedTitle,
+        date: eventDate,
+        time: eventTime,
+        expectedFeeling,
+      });
+      setEvents((prev) => sortEvents([...prev, res.data.data]));
+      setEventTitle("");
+      setEventDate("");
+      setEventTime("");
+      setExpectedFeeling(null);
+    } catch { /* silent */ }
   }
 
-  function handleSetActualFeeling(id, feeling) {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, actualFeeling: feeling } : e))
-    );
+  async function handleSetActualFeeling(id, feeling) {
+    try {
+      const res = await client.patch(`/calendar/${id}`, { actualFeeling: feeling });
+      setEvents((prev) =>
+        prev.map((e) => (e._id === id ? res.data.data : e))
+      );
+    } catch { /* silent */ }
   }
 
-  function handleDeleteEvent(id) {
-    setEvents((prev) => prev.filter((event) => event.id !== id));
-    if (editingEventId === id) stopEditingEvent();
+  async function handleDeleteEvent(id) {
+    try {
+      await client.delete(`/calendar/${id}`);
+      setEvents((prev) => prev.filter((event) => event._id !== id));
+      if (editingEventId === id) stopEditingEvent();
+    } catch { /* silent */ }
   }
 
   function prevMonth() {
-    setCurrentMonth(({ year, month }) => {
-      if (month === 0) return { year: year - 1, month: 11 };
-      return { year, month: month - 1 };
-    });
+    setCurrentMonth(({ year, month }) =>
+      month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }
+    );
     setSelectedDay(null);
   }
 
   function nextMonth() {
-    setCurrentMonth(({ year, month }) => {
-      if (month === 11) return { year: year + 1, month: 0 };
-      return { year, month: month + 1 };
-    });
+    setCurrentMonth(({ year, month }) =>
+      month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
+    );
     setSelectedDay(null);
   }
 
@@ -116,7 +164,6 @@ export default function useCalendar() {
 
   const filteredEvents = useMemo(() => {
     let base = events;
-
     if (selectedDay) {
       base = base.filter((e) => e.date === selectedDay);
     } else if (filter === "upcoming") {
@@ -124,7 +171,6 @@ export default function useCalendar() {
     } else if (filter === "past") {
       base = base.filter((e) => new Date(e.date + "T00:00:00") < today);
     }
-
     return base;
   }, [events, filter, selectedDay]);
 
@@ -149,6 +195,7 @@ export default function useCalendar() {
 
   return {
     events,
+    loading,
     eventTitle,
     setEventTitle,
     eventDate,

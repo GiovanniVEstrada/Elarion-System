@@ -64,6 +64,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         <motion.button
           className="task-save-btn"
           type="button"
+          aria-label="Save"
           onMouseDown={(e) => { e.preventDefault(); handleSave(); }}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
@@ -73,6 +74,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         <motion.button
           className="task-cancel-btn"
           type="button"
+          aria-label="Cancel"
           onMouseDown={(e) => { e.preventDefault(); setDraft(task.title); setEditing(false); }}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}

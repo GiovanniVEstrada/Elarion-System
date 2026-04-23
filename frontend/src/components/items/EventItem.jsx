@@ -51,7 +51,7 @@ export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling,
                       key={f}
                       type="button"
                       className={`feeling-btn feeling-btn--${f}`}
-                      onClick={() => onSetActualFeeling(event.id, f)}
+                      onClick={() => onSetActualFeeling(event._id, f)}
                     >
                       {FEELING_META[f].label}
                     </button>
@@ -68,7 +68,7 @@ export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling,
           <motion.button
             className="calendar-edit-btn"
             type="button"
-            onClick={() => onEdit(event.id)}
+            onClick={() => onEdit(event._id)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -78,7 +78,7 @@ export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling,
         <motion.button
           className="calendar-delete-btn"
           type="button"
-          onClick={() => onDelete(event.id)}
+          onClick={() => onDelete(event._id)}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
         >

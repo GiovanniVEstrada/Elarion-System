@@ -2,6 +2,10 @@ const Task = require("../models/Task");
 const asyncHandler = require("../utils/asyncHandler");
 const paginate = require("../utils/paginate");
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const getTasks = asyncHandler(async (req, res) => {
   const filter = { user: req.user._id };
 
@@ -10,6 +14,10 @@ const getTasks = asyncHandler(async (req, res) => {
   }
   if (req.query.priority) {
     filter.priority = req.query.priority;
+  }
+  if (req.query.search && req.query.search.trim()) {
+    const pattern = new RegExp(escapeRegex(req.query.search.trim()), "i");
+    filter.$or = [{ title: pattern }, { intent: pattern }];
   }
 
   const sortField = req.query.sort || "-createdAt";

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useToastEmitter } from "../components/Toast";
 
 const GUEST_KEY = "guest_tasks";
 const guestLoad = () => { try { return JSON.parse(localStorage.getItem(GUEST_KEY) || "[]"); } catch { return []; } };
@@ -8,6 +9,7 @@ const guestSave = (t) => localStorage.setItem(GUEST_KEY, JSON.stringify(t));
 
 export default function useTasks() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { showToast } = useToastEmitter();
   const [tasks, setTasks] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 50, totalPages: 1 });
   const [filters, setFilters] = useState({ completed: undefined, priority: undefined, sort: undefined });
@@ -19,12 +21,26 @@ export default function useTasks() {
   const [newTaskIntent, setNewTaskIntent] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchTimer = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(searchTimer.current);
+  }, [searchQuery]);
 
   // ── Fetch ────────────────────────────────────────────────────────
 
   const fetchTasks = useCallback(async (overrides = {}) => {
     if (!isAuthenticated) {
-      setTasks(guestLoad());
+      const all = guestLoad();
+      const q = debouncedSearch.trim().toLowerCase();
+      setTasks(q ? all.filter((t) =>
+        (t.title || "").toLowerCase().includes(q) ||
+        (t.intent || "").toLowerCase().includes(q)
+      ) : all);
       return;
     }
     setLoading(true);
@@ -33,16 +49,18 @@ export default function useTasks() {
       const params = { ...filters, ...overrides, limit: 50 };
       if (filter === "active")    params.completed = false;
       if (filter === "completed") params.completed = true;
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
       const res = await client.get("/tasks", { params });
       setTasks(res.data.data);
       setPagination(res.data.pagination);
     } catch (err) {
-      console.error("Failed to fetch tasks", err);
-      setError(err.response?.data?.message || "Failed to load tasks. Please try again.");
+      const msg = err.response?.data?.message || "Failed to load tasks.";
+      setError(msg);
+      showToast(msg, "warn");
     } finally {
       setLoading(false);
     }
-  }, [filters, filter, isAuthenticated]);
+  }, [filters, filter, isAuthenticated, debouncedSearch]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -83,7 +101,7 @@ export default function useTasks() {
       setTasks((prev) => [res.data.data ?? res.data, ...prev]);
       setNewTask(""); setNewTaskEnergy(null); setNewTaskIntent(""); setNewTaskPriority(null);
     } catch (err) {
-      console.error("Failed to add task", err);
+      showToast(err.response?.data?.message || "Failed to add task.", "warn");
     }
   }
 
@@ -97,7 +115,7 @@ export default function useTasks() {
       await client.patch(`/tasks/${id}`, { completed: !task.completed });
     } catch (err) {
       setTasks(tasks);
-      console.error("Failed to toggle task", err);
+      showToast("Failed to update task.", "warn");
     }
   }
 
@@ -132,7 +150,7 @@ export default function useTasks() {
     try {
       await client.delete(`/tasks/${id}`);
     } catch (err) {
-      console.error("Failed to delete task", err);
+      showToast("Failed to delete task.", "warn");
       fetchTasks();
     }
   }
@@ -145,7 +163,7 @@ export default function useTasks() {
     try {
       await Promise.all(completed.map((t) => client.delete(`/tasks/${t._id}`)));
     } catch (err) {
-      console.error("Failed to clear completed tasks", err);
+      showToast("Failed to clear completed tasks.", "warn");
       fetchTasks();
     }
   }
@@ -178,6 +196,8 @@ export default function useTasks() {
     setNewTaskPriority,
     filter,
     setFilter,
+    searchQuery,
+    setSearchQuery,
     filteredTasks,
     activeCount,
     completedCount,

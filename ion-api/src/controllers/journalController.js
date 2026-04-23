@@ -2,6 +2,10 @@ const JournalEntry = require("../models/JournalEntry");
 const asyncHandler = require("../utils/asyncHandler");
 const paginate = require("../utils/paginate");
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const getJournalEntries = asyncHandler(async (req, res) => {
   const filter = { user: req.user._id };
 
@@ -10,6 +14,10 @@ const getJournalEntries = asyncHandler(async (req, res) => {
   }
   if (req.query.tag) {
     filter.tags = req.query.tag;
+  }
+  if (req.query.search && req.query.search.trim()) {
+    const pattern = new RegExp(escapeRegex(req.query.search.trim()), "i");
+    filter.$or = [{ title: pattern }, { content: pattern }];
   }
 
   const sortField = req.query.sort || "-createdAt";

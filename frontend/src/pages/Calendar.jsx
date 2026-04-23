@@ -101,6 +101,7 @@ export default function Calendar() {
               <motion.button
                 className="cal-nav-btn"
                 type="button"
+                aria-label="Previous month"
                 onClick={prevMonth}
                 {...hoverAnim}
                 whileTap={{ scale: 0.96 }}
@@ -115,6 +116,7 @@ export default function Calendar() {
               <motion.button
                 className="cal-nav-btn"
                 type="button"
+                aria-label="Next month"
                 onClick={nextMonth}
                 {...hoverAnim}
                 whileTap={{ scale: 0.96 }}
@@ -290,7 +292,7 @@ export default function Calendar() {
                   <AnimatePresence>
                     {filteredEvents.map((event) => (
                       <EventItem
-                        key={event.id}
+                        key={event._id}
                         event={event}
                         onDelete={handleDeleteEvent}
                         onEdit={startEditingEvent}
