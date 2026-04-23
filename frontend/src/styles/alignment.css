@@ -236,3 +236,25 @@
 /* Inline feeling picker variant */
 .feeling-picker--inline { gap: 4px; }
 .feeling-picker--inline .feeling-btn { padding: 3px 9px; font-size: 0.75rem; }
+
+/* Post-mood selection after task completion */
+.post-mood-options { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.post-mood-btn {
+  font-size: 1.2rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  padding: 0;
+}
+.post-mood-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(1.12);
+}

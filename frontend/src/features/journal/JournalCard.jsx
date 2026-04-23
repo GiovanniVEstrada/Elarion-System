@@ -22,7 +22,7 @@ export default function JournalCard() {
       <div className="dashboard-card-header">
         <div>
           <span className="card-kicker">Reflection</span>
-          <h2>Journal</h2>
+          <h2>Reflection Log</h2>
         </div>
         <Link to="/journal" className="card-link">View All →</Link>
       </div>
@@ -56,7 +56,7 @@ export default function JournalCard() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            No journal entries yet.
+            No entries yet.
           </motion.p>
         ) : (
           <JournalEntry

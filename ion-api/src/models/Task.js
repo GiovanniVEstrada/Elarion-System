@@ -43,6 +43,11 @@ const taskSchema = new mongoose.Schema(
       max: 3,
       default: null,
     },
+    postMood: {
+      type: String,
+      enum: ["great", "good", "neutral", "bad", "awful", null],
+      default: null,
+    },
   },
   {
     timestamps: true,

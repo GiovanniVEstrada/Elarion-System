@@ -58,10 +58,10 @@ export default function Tasks() {
     <PageShell>
       <SectionHeader
         kicker="Workspace"
-        title={tab === "tasks" ? "Tasks" : "Habits"}
+        title={tab === "tasks" ? "Actions" : "Habits"}
         subtitle={
           tab === "tasks"
-            ? "Manage your tasks with more focus, structure, and control."
+            ? "Manage your actions with more focus, structure, and intention."
             : "Build consistent routines. Small daily actions compound into real change."
         }
       />
@@ -76,7 +76,7 @@ export default function Tasks() {
             onClick={() => setTab(t)}
             {...tapAnim}
           >
-            {t === "tasks" ? "Tasks" : "Habits"}
+            {t === "tasks" ? "Actions" : "Habits"}
           </motion.button>
         ))}
       </div>
@@ -97,7 +97,7 @@ export default function Tasks() {
                   <input
                     className="task-input"
                     type="text"
-                    placeholder="Add a new task..."
+                    placeholder="Add a new action..."
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
                   />
@@ -148,7 +148,7 @@ export default function Tasks() {
                 <input
                   className="task-search-input"
                   type="text"
-                  placeholder="Search tasks…"
+                  placeholder="Search actions…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -168,7 +168,7 @@ export default function Tasks() {
                   <button onClick={refetchTasks}>Retry</button>
                 </div>
               ) : filteredTasks.length === 0 ? (
-                <p className="tasks-page-empty">No tasks in this view.</p>
+                <p className="tasks-page-empty">No actions in this view.</p>
               ) : (
                 <ul className="task-list">
                   <AnimatePresence>

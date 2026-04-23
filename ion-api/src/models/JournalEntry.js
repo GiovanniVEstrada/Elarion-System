@@ -39,6 +39,12 @@ const journalEntrySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    sentimentScore: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
   },
   {
     timestamps: true,

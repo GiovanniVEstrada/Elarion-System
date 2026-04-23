@@ -305,6 +305,204 @@ const getMoodSummary = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/insights/correlations
+const getCorrelations = asyncHandler(async (req, res) => {
+  const uid = req.user._id;
+  const thirtyDaysAgo = new Date(Date.now() - 30 * DAY_MS);
+
+  // Build a day→moodScore map from the last 30 mood entries
+  const recentMoods = await MoodEntry.find({
+    user: uid, date: { $gte: thirtyDaysAgo },
+  }).select("date mood");
+
+  const moodByDay = new Map();
+  for (const m of recentMoods) {
+    const key = new Date(m.date).toISOString().slice(0, 10);
+    moodByDay.set(key, MOOD_SCORES[m.mood] ?? 3);
+  }
+
+  // Tasks completed per day in last 30 days
+  const completedTasks = await Task.find({
+    user: uid, completed: true, updatedAt: { $gte: thirtyDaysAgo },
+  }).select("updatedAt");
+
+  const tasksByDay = new Map();
+  for (const t of completedTasks) {
+    const key = new Date(t.updatedAt).toISOString().slice(0, 10);
+    tasksByDay.set(key, (tasksByDay.get(key) || 0) + 1);
+  }
+
+  // Habits completed per day (any habit completion)
+  const habits = await Habit.find({ user: uid }).select("completedDates");
+  const habitsByDay = new Map();
+  for (const h of habits) {
+    for (const d of h.completedDates) {
+      if (d < thirtyDaysAgo) continue;
+      const key = new Date(d).toISOString().slice(0, 10);
+      habitsByDay.set(key, (habitsByDay.get(key) || 0) + 1);
+    }
+  }
+
+  // Compute correlations: split days into "high activity" vs "low activity"
+  const days = [...moodByDay.keys()];
+  const taskMoodPairs  = days.map(d => ({ tasks: tasksByDay.get(d) || 0, mood: moodByDay.get(d) }));
+  const habitMoodPairs = days.map(d => ({ habits: habitsByDay.get(d) || 0, mood: moodByDay.get(d) }));
+
+  function avgMoodWhen(pairs, key, pred) {
+    const filtered = pairs.filter(p => pred(p[key]));
+    if (!filtered.length) return null;
+    return Math.round(filtered.reduce((s, p) => s + p.mood, 0) / filtered.length * 10) / 10;
+  }
+
+  const median = (arr) => {
+    if (!arr.length) return 0;
+    const s = [...arr].sort((a, b) => a - b);
+    return s[Math.floor(s.length / 2)];
+  };
+
+  const taskCounts  = taskMoodPairs.map(p => p.tasks);
+  const habitCounts = habitMoodPairs.map(p => p.habits);
+  const taskMedian  = median(taskCounts);
+  const habitMedian = median(habitCounts);
+
+  const moodOnHighTaskDays  = avgMoodWhen(taskMoodPairs,  "tasks",  v => v >  taskMedian);
+  const moodOnLowTaskDays   = avgMoodWhen(taskMoodPairs,  "tasks",  v => v <= taskMedian);
+  const moodOnHighHabitDays = avgMoodWhen(habitMoodPairs, "habits", v => v >  habitMedian);
+  const moodOnLowHabitDays  = avgMoodWhen(habitMoodPairs, "habits", v => v <= habitMedian);
+
+  // Journal clarity vs average mood (aggregate per-entry comparison)
+  const journalEntries = await JournalEntry.find({
+    user: uid, clarity: { $ne: null }, createdAt: { $gte: thirtyDaysAgo },
+  }).select("clarity createdAt");
+
+  const clarityMoodPairs = journalEntries.map(e => {
+    const key = new Date(e.createdAt).toISOString().slice(0, 10);
+    return { clarity: e.clarity, mood: moodByDay.get(key) ?? null };
+  }).filter(p => p.mood !== null);
+
+  const moodWhenHighClarity = avgMoodWhen(clarityMoodPairs, "clarity", v => v >= 4);
+  const moodWhenLowClarity  = avgMoodWhen(clarityMoodPairs, "clarity", v => v <= 2);
+
+  function direction(high, low) {
+    if (high === null || low === null) return "insufficient_data";
+    if (high > low + 0.3) return "positive";
+    if (high < low - 0.3) return "negative";
+    return "neutral";
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      taskVsMood: {
+        moodOnHighTaskDays,
+        moodOnLowTaskDays,
+        direction: direction(moodOnHighTaskDays, moodOnLowTaskDays),
+      },
+      habitVsMood: {
+        moodOnHighHabitDays,
+        moodOnLowHabitDays,
+        direction: direction(moodOnHighHabitDays, moodOnLowHabitDays),
+      },
+      clarityVsMood: {
+        moodWhenHighClarity,
+        moodWhenLowClarity,
+        direction: direction(moodWhenHighClarity, moodWhenLowClarity),
+      },
+      daysAnalyzed: days.length,
+    },
+  });
+});
+
+function trendDirection(recent, previous, threshold = 0.5) {
+  if (recent === null || previous === null) return null;
+  if (recent > previous + threshold) return "up";
+  if (recent < previous - threshold) return "down";
+  return "stable";
+}
+
+// GET /api/insights/weekly-summary
+const getWeeklySummary = asyncHandler(async (req, res) => {
+  const uid = req.user._id;
+  const weekStart = startOfWeek();
+  const prevWeekStart = new Date(weekStart.getTime() - 7 * DAY_MS);
+
+  const [
+    tasksThisWeek, tasksPrevWeek,
+    moodsThisWeek, moodsPrevWeek,
+    journalThisWeek, journalPrevWeek,
+    habitsThisWeek,
+  ] = await Promise.all([
+    Task.countDocuments({ user: uid, completed: true, updatedAt: { $gte: weekStart } }),
+    Task.countDocuments({ user: uid, completed: true, updatedAt: { $gte: prevWeekStart, $lt: weekStart } }),
+    MoodEntry.find({ user: uid, date: { $gte: weekStart } }).select("mood"),
+    MoodEntry.find({ user: uid, date: { $gte: prevWeekStart, $lt: weekStart } }).select("mood"),
+    JournalEntry.countDocuments({ user: uid, createdAt: { $gte: weekStart } }),
+    JournalEntry.countDocuments({ user: uid, createdAt: { $gte: prevWeekStart, $lt: weekStart } }),
+    Habit.find({ user: uid, active: true }).select("completedDates"),
+  ]);
+
+  const avgMood = (moods) => moods.length
+    ? Math.round(moods.reduce((s, m) => s + MOOD_SCORES[m.mood], 0) / moods.length * 10) / 10
+    : null;
+
+  const habitCompletionsThisWeek = habitsThisWeek.reduce((sum, h) =>
+    sum + h.completedDates.filter(d => new Date(d) >= weekStart).length, 0);
+
+  const thisWeekMoodAvg = avgMood(moodsThisWeek);
+  const prevWeekMoodAvg = avgMood(moodsPrevWeek);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      tasksCompleted: tasksThisWeek,
+      tasksTrend: trendDirection(tasksThisWeek, tasksPrevWeek),
+      moodAverage: thisWeekMoodAvg,
+      moodTrend: trendDirection(thisWeekMoodAvg, prevWeekMoodAvg, 0.3),
+      journalEntries: journalThisWeek,
+      journalTrend: trendDirection(journalThisWeek, journalPrevWeek),
+      habitCompletions: habitCompletionsThisWeek,
+      period: "week",
+    },
+  });
+});
+
+// GET /api/insights/monthly-summary
+const getMonthlySummary = asyncHandler(async (req, res) => {
+  const uid = req.user._id;
+  const monthStart = startOfMonth();
+  const prevMonthStart = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+
+  const [
+    tasksThisMonth, tasksPrevMonth,
+    moodsThisMonth, moodsPrevMonth,
+    journalThisMonth, journalPrevMonth,
+  ] = await Promise.all([
+    Task.countDocuments({ user: uid, completed: true, updatedAt: { $gte: monthStart } }),
+    Task.countDocuments({ user: uid, completed: true, updatedAt: { $gte: prevMonthStart, $lt: monthStart } }),
+    MoodEntry.find({ user: uid, date: { $gte: monthStart } }).select("mood"),
+    MoodEntry.find({ user: uid, date: { $gte: prevMonthStart, $lt: monthStart } }).select("mood"),
+    JournalEntry.countDocuments({ user: uid, createdAt: { $gte: monthStart } }),
+    JournalEntry.countDocuments({ user: uid, createdAt: { $gte: prevMonthStart, $lt: monthStart } }),
+  ]);
+
+  const avgMood = (moods) => moods.length
+    ? Math.round(moods.reduce((s, m) => s + MOOD_SCORES[m.mood], 0) / moods.length * 10) / 10
+    : null;
+
+  res.status(200).json({
+    success: true,
+    data: {
+      tasksCompleted: tasksThisMonth,
+      tasksTrend: trendDirection(tasksThisMonth, tasksPrevMonth),
+      moodAverage: avgMood(moodsThisMonth),
+      moodTrend: trendDirection(avgMood(moodsThisMonth), avgMood(moodsPrevMonth), 0.3),
+      journalEntries: journalThisMonth,
+      journalTrend: trendDirection(journalThisMonth, journalPrevMonth),
+      period: "month",
+    },
+  });
+});
+
 module.exports = {
   getOverview,
   getProductivity,
@@ -312,4 +510,7 @@ module.exports = {
   getJournalFrequency,
   getHabitConsistency,
   getMoodSummary,
+  getCorrelations,
+  getWeeklySummary,
+  getMonthlySummary,
 };

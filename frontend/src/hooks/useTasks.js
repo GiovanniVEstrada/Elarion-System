@@ -119,12 +119,16 @@ export default function useTasks() {
     }
   }
 
-  async function handleRateTask(id, score) {
-    const updated = tasks.map((t) => t._id === id ? { ...t, alignmentScore: score } : t);
+  async function handleRateTask(id, { alignmentScore, postMood } = {}) {
+    const patch = {};
+    if (alignmentScore != null) patch.alignmentScore = alignmentScore;
+    if (postMood != null) patch.postMood = postMood;
+    if (!Object.keys(patch).length) return;
+    const updated = tasks.map((t) => t._id === id ? { ...t, ...patch } : t);
     setTasks(updated);
     if (!isAuthenticated) { guestSave(updated); return; }
     try {
-      await client.patch(`/tasks/${id}`, { alignmentScore: score });
+      await client.patch(`/tasks/${id}`, patch);
     } catch (err) {
       console.error("Failed to rate task", err);
     }

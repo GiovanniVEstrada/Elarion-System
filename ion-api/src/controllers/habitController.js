@@ -57,6 +57,27 @@ const deleteHabit = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { message: "Habit deleted successfully" } });
 });
 
+const DAY_MS = 86400000;
+
+function calcCurrentStreak(dates) {
+  if (!dates.length) return 0;
+  const unique = [...new Set(dates.map((d) => {
+    const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime();
+  }))].sort((a, b) => a - b);
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayMs = today.getTime();
+  const last = unique[unique.length - 1];
+  if (last !== todayMs && last !== todayMs - DAY_MS) return 0;
+
+  let streak = 1;
+  for (let i = unique.length - 2; i >= 0; i--) {
+    if (unique[i + 1] - unique[i] === DAY_MS) streak++;
+    else break;
+  }
+  return streak;
+}
+
 const completeHabit = asyncHandler(async (req, res) => {
   const habit = await Habit.findOne({ _id: req.params.id, user: req.user._id });
 
@@ -78,6 +99,7 @@ const completeHabit = asyncHandler(async (req, res) => {
   }
 
   habit.completedDates.push(today);
+  habit.cachedStreak = calcCurrentStreak(habit.completedDates);
   await habit.save();
 
   res.status(200).json({ success: true, data: habit });

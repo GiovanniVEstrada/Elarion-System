@@ -35,7 +35,7 @@ export default function TaskCard() {
       <div className="dashboard-card-header">
         <div>
           <span className="card-kicker">Overview</span>
-          <h2>Tasks</h2>
+          <h2>Actions</h2>
         </div>
         <Link to="/tasks" className="card-link">View All →</Link>
       </div>
@@ -47,7 +47,7 @@ export default function TaskCard() {
           <input
             className="task-input"
             type="text"
-            placeholder="Add a new task..."
+            placeholder="Add a new action..."
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
           />
@@ -91,7 +91,7 @@ export default function TaskCard() {
       </ul>
 
       {tasks.length > 5 && (
-        <p className="task-more">+{tasks.length - 5} more tasks</p>
+        <p className="task-more">+{tasks.length - 5} more actions</p>
       )}
 
       <AnimatePresence>

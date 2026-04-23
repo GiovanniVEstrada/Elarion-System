@@ -29,6 +29,10 @@ const habitSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    cachedStreak: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

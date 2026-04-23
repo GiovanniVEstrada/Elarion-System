@@ -66,7 +66,7 @@ export default function Dashboard() {
     const parts = [];
 
     if (isGuest) {
-      parts.push("No active tasks");
+      parts.push("No active actions");
     } else {
       const active = overview
         ? overview.totalTasks - overview.completedTasks
@@ -75,9 +75,9 @@ export default function Dashboard() {
       if (active === null) {
         parts.push("Loading…");
       } else if (active === 0) {
-        parts.push("No active tasks");
+        parts.push("No active actions");
       } else {
-        parts.push(`${active} active task${active !== 1 ? "s" : ""}`);
+        parts.push(`${active} active action${active !== 1 ? "s" : ""}`);
       }
     }
 
@@ -99,9 +99,6 @@ export default function Dashboard() {
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
         <div className="dashboard-title-group">
-          <Link to="/settings" className="dashboard-settings-btn" aria-label="Settings">
-            ⚙
-          </Link>
           <motion.p
             className="dashboard-greeting"
             initial={{ opacity: 0, y: 6 }}
@@ -138,14 +135,19 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        <motion.p
-          className="dashboard-reflection"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.22, duration: 0.4 }}
-        >
-          {reflection}
-        </motion.p>
+        <div className="dashboard-aside">
+          <Link to="/settings" className="dashboard-settings-btn" aria-label="Settings">
+            ⚙
+          </Link>
+          <motion.p
+            className="dashboard-reflection"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.22, duration: 0.4 }}
+          >
+            {reflection}
+          </motion.p>
+        </div>
       </motion.header>
 
       <motion.main

@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useMoodsContext, MOOD_OPTIONS } from "../context/MoodsContext";
+import { useReflectionsContext } from "../context/ReflectionsContext";
 import { useAuth } from "../context/AuthContext";
 import PageShell from "../components/layout/PageShell";
 import SectionHeader from "../components/layout/SectionHeader";
 import client from "../api/client";
 import { tapAnim } from "../utils/motion";
+import { getTodayStr } from "../utils/dateUtils";
 
 const MOOD_EMOJIS  = ["", "😔", "😕", "😐", "🙂", "😊"];
 const MOOD_COLORS  = ["", "#ff5a5a", "#ff9a5a", "#ffc83c", "#8de88d", "#64dc82"];
@@ -19,6 +21,27 @@ const TREND_MAP = {
   improving: { icon: "↑", color: "#64dc82" },
   stable:    { icon: "—", color: "var(--text-soft)" },
   declining: { icon: "↓", color: "#ff5a5a" },
+  up:        { icon: "↑", color: "#64dc82" },
+  down:      { icon: "↓", color: "#ff5a5a" },
+};
+
+const REFLECTION_MOOD_OPTIONS = [
+  { value: "great",   emoji: "😊", label: "Great"   },
+  { value: "good",    emoji: "🙂", label: "Good"    },
+  { value: "neutral", emoji: "😐", label: "Neutral" },
+  { value: "bad",     emoji: "😕", label: "Bad"     },
+  { value: "awful",   emoji: "😔", label: "Awful"   },
+];
+
+function reflMoodMeta(value) {
+  return REFLECTION_MOOD_OPTIONS.find((m) => m.value === value) ?? { emoji: "•", label: value ?? "" };
+}
+
+const CORR_DIR = {
+  positive:           { label: "positive link",  color: "#64dc82" },
+  negative:           { label: "negative link",  color: "#ff5a5a" },
+  neutral:            { label: "no clear link",  color: "var(--text-soft)" },
+  insufficient_data:  { label: "not enough data", color: "var(--text-soft)" },
 };
 
 function StatCard({ title, children, delay = 0 }) {
@@ -62,12 +85,15 @@ export default function Reflect() {
     todaysMood, selectedMood, setSelectedMood,
     note, setNote, submitting, handleLog,
   } = useMoodsContext();
+  const { reflections, todayReflection, upsertReflection } = useReflectionsContext();
   const [insights, setInsights] = useState({
     productivity: null,
     streaks: null,
     journalFrequency: null,
     habitConsistency: null,
     moodSummary: null,
+    correlations: null,
+    weeklySummary: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -82,13 +108,17 @@ export default function Reflect() {
       client.get("/insights/journal-frequency"),
       client.get("/insights/habit-consistency"),
       client.get("/insights/mood-summary"),
-    ]).then(([prod, str, jf, hc, ms]) => {
+      client.get("/insights/correlations"),
+      client.get("/insights/weekly-summary"),
+    ]).then(([prod, str, jf, hc, ms, corr, wk]) => {
       setInsights({
-        productivity:      prod.status   === "fulfilled" ? prod.value.data.data   : null,
-        streaks:           str.status    === "fulfilled" ? str.value.data.data    : null,
-        journalFrequency:  jf.status     === "fulfilled" ? jf.value.data.data     : null,
-        habitConsistency:  hc.status     === "fulfilled" ? hc.value.data.data     : null,
-        moodSummary:       ms.status     === "fulfilled" ? ms.value.data.data     : null,
+        productivity:     prod.status === "fulfilled" ? prod.value.data.data : null,
+        streaks:          str.status  === "fulfilled" ? str.value.data.data  : null,
+        journalFrequency: jf.status   === "fulfilled" ? jf.value.data.data   : null,
+        habitConsistency: hc.status   === "fulfilled" ? hc.value.data.data   : null,
+        moodSummary:      ms.status   === "fulfilled" ? ms.value.data.data   : null,
+        correlations:     corr.status === "fulfilled" ? corr.value.data.data : null,
+        weeklySummary:    wk.status   === "fulfilled" ? wk.value.data.data   : null,
       });
       setLoading(false);
     });
@@ -109,6 +139,8 @@ export default function Reflect() {
   const hc    = insights.habitConsistency;
   const ms    = insights.moodSummary;
   const str   = insights.streaks;
+  const corr  = insights.correlations;
+  const wk    = insights.weeklySummary;
 
   const alignCounts = prod?.alignmentBreakdown ?? { off: 0, neutral: 0, aligned: 0 };
   const ratedTotal  = (alignCounts.off + alignCounts.neutral + alignCounts.aligned) || 1;
@@ -123,6 +155,13 @@ export default function Reflect() {
   const mentalStateCounts = jf?.mentalStateCounts ? Object.entries(jf.mentalStateCounts).sort((a, b) => b[1] - a[1]) : [];
 
   const trend = ms?.trend ? TREND_MAP[ms.trend] : null;
+
+  // ── Prediction accuracy ─────────────────────────────────────────
+  const reflWithBoth = reflections.filter((r) => r.predictedMood && r.actualMood);
+  const reflMatched  = reflWithBoth.filter((r) => r.predictedMood === r.actualMood).length;
+  const predAccuracy = reflWithBoth.length >= 3
+    ? Math.round((reflMatched / reflWithBoth.length) * 100)
+    : null;
 
   return (
     <PageShell>
@@ -199,6 +238,78 @@ export default function Reflect() {
         )}
       </motion.div>
 
+      {/* ── Daily prediction widget ── */}
+      {!isGuest && (
+        <motion.div
+          className="prediction-widget"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.3 }}
+        >
+          {!todayReflection?.predictedMood ? (
+            <>
+              <span className="prediction-prompt">Predict your mood for today</span>
+              <div className="prediction-mood-row">
+                {REFLECTION_MOOD_OPTIONS.map(({ value, emoji }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="prediction-mood-btn"
+                    onClick={() => upsertReflection({ date: getTodayStr(), predictedMood: value })}
+                    title={value}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : !todayReflection?.actualMood ? (
+            <>
+              <div className="prediction-set-row">
+                <span className="prediction-prompt">
+                  Predicted: {reflMoodMeta(todayReflection.predictedMood).emoji} {reflMoodMeta(todayReflection.predictedMood).label}
+                </span>
+                <span className="prediction-divider">·</span>
+                <span className="prediction-prompt prediction-prompt--soft">How did today actually go?</span>
+              </div>
+              <div className="prediction-mood-row">
+                {REFLECTION_MOOD_OPTIONS.map(({ value, emoji }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="prediction-mood-btn"
+                    onClick={() => upsertReflection({
+                      date: getTodayStr(),
+                      predictedMood: todayReflection.predictedMood,
+                      actualMood: value,
+                    })}
+                    title={value}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="prediction-result">
+              <span className="prediction-result-emoji">{reflMoodMeta(todayReflection.predictedMood).emoji}</span>
+              <span className="prediction-arrow">→</span>
+              <span className="prediction-result-emoji">{reflMoodMeta(todayReflection.actualMood).emoji}</span>
+              <span className="prediction-match-label">
+                {todayReflection.predictedMood === todayReflection.actualMood
+                  ? "Spot on!"
+                  : `Predicted ${reflMoodMeta(todayReflection.predictedMood).label}, was ${reflMoodMeta(todayReflection.actualMood).label}`}
+              </span>
+              {predAccuracy !== null && (
+                <span className="prediction-accuracy-inline">
+                  {predAccuracy}% accurate over {reflWithBoth.length} days
+                </span>
+              )}
+            </div>
+          )}
+        </motion.div>
+      )}
+
       <motion.div
         className="reflect-shell"
         initial={{ opacity: 0, y: 14 }}
@@ -208,12 +319,12 @@ export default function Reflect() {
         <div className="reflect-grid">
 
           {/* ── Tasks ── */}
-          <StatCard title="Tasks" delay={0.12}>
+          <StatCard title="Actions" delay={0.12}>
             <p className="reflect-meta">
               {ratedTotal - 1 > 0 ? `${ratedTotal - 1} rated` : "No ratings yet"}
             </p>
             {ratedTotal <= 1 ? (
-              <EmptyState message="Complete tasks and rate your alignment to see patterns here." />
+              <EmptyState message="Complete actions and rate your alignment to see patterns here." />
             ) : (
               <>
                 <div className="reflect-subsection">
@@ -265,7 +376,7 @@ export default function Reflect() {
           </StatCard>
 
           {/* ── Journal ── */}
-          <StatCard title="Journal" delay={0.18}>
+          <StatCard title="Reflection Log" delay={0.18}>
             <p className="reflect-meta">
               {jf ? `${jf.entriesThisWeek ?? 0} this week · ${jf.entriesThisMonth ?? 0} this month` : "—"}
             </p>
@@ -418,6 +529,120 @@ export default function Reflect() {
                     })}
                   </div>
                 )}
+              </>
+            )}
+          </StatCard>
+
+          {/* ── This Week ── */}
+          <StatCard title="This Week" delay={0.42}>
+            {!wk ? (
+              <EmptyState message={loading ? "Loading…" : "Not enough data yet."} />
+            ) : (
+              <div className="reflect-subsection">
+                {[
+                  { label: "Actions completed", value: wk.tasksCompleted, trend: wk.tasksTrend },
+                  { label: "Mood average",       value: wk.moodAverage != null ? `${Number(wk.moodAverage).toFixed(1)}/5` : "—", trend: wk.moodTrend },
+                  { label: "Notes written",      value: wk.journalEntries, trend: wk.journalTrend },
+                ].map(({ label, value, trend: t }) => {
+                  const tm = t ? TREND_MAP[t] : null;
+                  return (
+                    <div key={label} className="data-row">
+                      <span className="data-row-label" style={{ flex: 1, color: "var(--text-soft)" }}>{label}</span>
+                      <span className="data-row-count" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        {value ?? 0}
+                        {tm && <span style={{ color: tm.color, fontSize: "0.9em" }}>{tm.icon}</span>}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </StatCard>
+
+          {/* ── Patterns ── */}
+          <StatCard title="Patterns" delay={0.48}>
+            {!corr ? (
+              <EmptyState message={loading ? "Loading…" : "Log data for 7+ days to see patterns."} />
+            ) : corr.daysAnalyzed < 5 ? (
+              <EmptyState message={`${corr.daysAnalyzed} days of data — keep going to unlock patterns.`} />
+            ) : (
+              <div className="reflect-subsection">
+                {[
+                  {
+                    label: "Completing actions",
+                    dir: corr.taskVsMood?.direction,
+                    high: corr.taskVsMood?.moodOnHighTaskDays,
+                    low:  corr.taskVsMood?.moodOnLowTaskDays,
+                  },
+                  {
+                    label: "Doing habits",
+                    dir: corr.habitVsMood?.direction,
+                    high: corr.habitVsMood?.moodOnHighHabitDays,
+                    low:  corr.habitVsMood?.moodOnLowHabitDays,
+                  },
+                  {
+                    label: "Writing with clarity",
+                    dir: corr.clarityVsMood?.direction,
+                    high: corr.clarityVsMood?.moodWhenHighClarity,
+                    low:  corr.clarityVsMood?.moodWhenLowClarity,
+                  },
+                ].map(({ label, dir, high, low }) => {
+                  const meta = CORR_DIR[dir] ?? CORR_DIR.insufficient_data;
+                  return (
+                    <div key={label} style={{ marginBottom: 10 }}>
+                      <div className="data-row">
+                        <span className="data-row-label" style={{ flex: 1, color: "var(--text)" }}>{label}</span>
+                        <span style={{ fontSize: "0.78rem", color: meta.color }}>{meta.label}</span>
+                      </div>
+                      {high != null && low != null && dir !== "insufficient_data" && (
+                        <p style={{ fontSize: "0.76rem", color: "var(--text-soft)", margin: "2px 0 0", opacity: 0.7 }}>
+                          mood {Number(high).toFixed(1)} on high days vs {Number(low).toFixed(1)} on low
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+                <p style={{ fontSize: "0.72rem", color: "var(--text-soft)", opacity: 0.45, marginTop: 8 }}>
+                  Based on {corr.daysAnalyzed} days of data
+                </p>
+              </div>
+            )}
+          </StatCard>
+
+          {/* ── Prediction accuracy ── */}
+          <StatCard title="Prediction" delay={0.54}>
+            {reflWithBoth.length === 0 ? (
+              <EmptyState message="Predict your daily mood to track accuracy over time." />
+            ) : (
+              <>
+                <p className="reflect-meta">{reflWithBoth.length} prediction{reflWithBoth.length !== 1 ? "s" : ""} recorded</p>
+                {predAccuracy !== null && (
+                  <div className="reflect-subsection reflect-averages">
+                    <div className="reflect-avg">
+                      <span className="reflect-avg-num">{predAccuracy}<span className="reflect-avg-denom">%</span></span>
+                      <span className="reflect-avg-label">prediction accuracy</span>
+                    </div>
+                  </div>
+                )}
+                <div className="reflect-subsection">
+                  <span className="reflect-sublabel">Recent</span>
+                  <div className="mood-dots">
+                    {reflections
+                      .filter((r) => r.predictedMood && r.actualMood)
+                      .slice(0, 14)
+                      .map((r, i) => (
+                        <div
+                          key={i}
+                          className="mood-dot"
+                          title={`Predicted ${r.predictedMood}, was ${r.actualMood}`}
+                          style={{
+                            background: r.predictedMood === r.actualMood ? "#64dc82" : "#ffc83c",
+                            borderRadius: r.predictedMood === r.actualMood ? "50%" : "3px",
+                          }}
+                        />
+                      ))}
+                  </div>
+                </div>
               </>
             )}
           </StatCard>

@@ -25,11 +25,11 @@ export default function Navbar() {
 
       <div className="navbar-links">
         {[
-          { to: "/",         label: "Dashboard", end: true  },
-          { to: "/tasks",    label: "Tasks",     end: false },
-          { to: "/journal",  label: "Journal",   end: false },
-          { to: "/calendar", label: "Calendar",  end: false },
-          { to: "/reflect",  label: "Reflect",   end: false },
+          { to: "/",         label: "Alignment Center", end: true  },
+          { to: "/tasks",    label: "Actions",          end: false },
+          { to: "/journal",  label: "Reflection Log",   end: false },
+          { to: "/calendar", label: "Calendar",         end: false },
+          { to: "/reflect",  label: "Reflect",          end: false },
         ].map(({ to, label, end }) => (
           <motion.div key={to} whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
             <NavLink to={to} end={end} className={linkClass}>{label}</NavLink>

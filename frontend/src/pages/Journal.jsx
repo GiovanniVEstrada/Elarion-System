@@ -53,8 +53,8 @@ export default function Journal() {
     <PageShell>
       <SectionHeader
         kicker="Workspace"
-        title="Journal"
-        subtitle="Build thoughts, reflections, and notes in a space that can grow into something deeper later."
+        title="Reflection Log"
+        subtitle="Capture thoughts and notes — a space where patterns emerge over time."
       />
       <SkeletonList count={5} />
     </PageShell>
@@ -73,8 +73,8 @@ export default function Journal() {
     <PageShell>
       <SectionHeader
         kicker="Workspace"
-        title="Journal"
-        subtitle="Build thoughts, reflections, and notes in a space that can grow into something deeper later."
+        title="Reflection Log"
+        subtitle="Capture thoughts and notes — a space where patterns emerge over time."
       />
 
       <motion.div

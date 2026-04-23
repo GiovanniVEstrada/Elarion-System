@@ -28,6 +28,9 @@ const register = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      onboardingComplete: user.onboardingComplete,
+      focusAreas: user.focusAreas,
+      baselineMood: user.baselineMood,
       token: generateToken(user._id),
     },
   });
@@ -48,6 +51,9 @@ const login = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      onboardingComplete: user.onboardingComplete,
+      focusAreas: user.focusAreas,
+      baselineMood: user.baselineMood,
       token: generateToken(user._id),
     },
   });
@@ -58,13 +64,18 @@ const getMe = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: req.user });
 });
 
-// PATCH /api/auth/me — update name
+// PATCH /api/auth/me — update profile / onboarding fields
 const updateMe = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+  const { name, onboardingComplete, focusAreas, baselineMood } = req.body;
+  const updates = {};
+  if (name             !== undefined) updates.name              = name;
+  if (onboardingComplete !== undefined) updates.onboardingComplete = onboardingComplete;
+  if (focusAreas       !== undefined) updates.focusAreas        = focusAreas;
+  if (baselineMood     !== undefined) updates.baselineMood      = baselineMood;
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
-    { name },
+    updates,
     { new: true, runValidators: true }
   ).select("-password");
 

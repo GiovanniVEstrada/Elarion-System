@@ -63,8 +63,8 @@ export default defineConfig({
         ],
         shortcuts: [
           {
-            name: 'Tasks',
-            short_name: 'Tasks',
+            name: 'Actions',
+            short_name: 'Actions',
             url: '/tasks',
             icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
           },

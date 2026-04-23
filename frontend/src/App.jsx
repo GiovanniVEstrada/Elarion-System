@@ -7,6 +7,7 @@ import { JournalProvider } from "./context/JournalContext";
 import { CalendarProvider } from "./context/CalendarContext";
 import { HabitsProvider } from "./context/HabitsContext";
 import { MoodsProvider } from "./context/MoodsContext";
+import { ReflectionsProvider } from "./context/ReflectionsContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import GuestBanner from "./components/layout/GuestBanner";
 import Navbar from "./components/layout/Navbar";
@@ -25,7 +26,8 @@ const Reflect   = lazy(() => import("./pages/Reflect"));
 const Login     = lazy(() => import("./pages/Login"));
 const Register  = lazy(() => import("./pages/Register"));
 const Settings  = lazy(() => import("./pages/Settings"));
-const NotFound  = lazy(() => import("./pages/NotFound"));
+const NotFound    = lazy(() => import("./pages/NotFound"));
+const Onboarding  = lazy(() => import("./pages/Onboarding"));
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -48,8 +50,9 @@ function AnimatedRoutes() {
             <Route path="/habits"   element={<Habits />} />
             <Route path="/moods"    element={<Moods />} />
             <Route path="/reflect"  element={<Reflect />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*"         element={<NotFound />} />
+            <Route path="/settings"    element={<Settings />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="*"           element={<NotFound />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
@@ -79,18 +82,20 @@ function AppShell() {
         <CalendarProvider>
           <HabitsProvider>
             <MoodsProvider>
-              <div className="app-shell">
-                <div className="bg-orb bg-orb-1" />
-                <div className="bg-orb bg-orb-2" />
-                <div className="bg-orb bg-orb-3" />
-                <OfflineBanner />
-                <GuestBanner />
-                <Navbar />
-                <BottomNav />
-                <AnimatedRoutes />
-                <Footer />
-                <ToastContainer />
-              </div>
+              <ReflectionsProvider>
+                <div className="app-shell">
+                  <div className="bg-orb bg-orb-1" />
+                  <div className="bg-orb bg-orb-2" />
+                  <div className="bg-orb bg-orb-3" />
+                  <OfflineBanner />
+                  <GuestBanner />
+                  <Navbar />
+                  <BottomNav />
+                  <AnimatedRoutes />
+                  <Footer />
+                  <ToastContainer />
+                </div>
+              </ReflectionsProvider>
             </MoodsProvider>
           </HabitsProvider>
         </CalendarProvider>

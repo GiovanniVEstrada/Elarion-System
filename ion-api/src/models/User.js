@@ -20,6 +20,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    onboardingComplete: { type: Boolean, default: false },
+    focusAreas: { type: [String], default: [] },
+    baselineMood: {
+      type: String,
+      enum: ["great", "good", "neutral", "bad", "awful", null],
+      default: null,
+    },
   },
   {
     timestamps: true,

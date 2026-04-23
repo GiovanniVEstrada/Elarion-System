@@ -10,6 +10,7 @@ const habitRoutes = require("./routes/habitRoutes");
 const moodRoutes = require("./routes/moodRoutes");
 const insightRoutes = require("./routes/insightRoutes");
 const calendarRoutes = require("./routes/calendarRoutes");
+const reflectionRoutes = require("./routes/reflectionRoutes");
 const protect = require("./middleware/protect");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -57,6 +58,7 @@ app.use("/api/habits", protect, habitRoutes);
 app.use("/api/moods", protect, moodRoutes);
 app.use("/api/insights", protect, insightRoutes);
 app.use("/api/calendar", protect, calendarRoutes);
+app.use("/api/reflections", protect, reflectionRoutes);
 
 app.use(errorHandler);
 

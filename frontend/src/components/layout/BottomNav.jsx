@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
 
 const LEFT_TABS = [
-  { to: "/tasks",   end: false, icon: "✓", label: "Tasks"   },
-  { to: "/journal", end: false, icon: "✎", label: "Journal" },
+  { to: "/tasks",   end: false, icon: "✓", label: "Actions"        },
+  { to: "/journal", end: false, icon: "✎", label: "Reflection Log" },
 ];
 
 const RIGHT_TABS = [
@@ -31,7 +31,7 @@ export default function BottomNav() {
           className={({ isActive }) =>
             isActive ? "bottom-nav-home active" : "bottom-nav-home"
           }
-          aria-label="Dashboard"
+          aria-label="Alignment Center"
         >
           <span className="bottom-nav-home-icon">⌂</span>
         </NavLink>

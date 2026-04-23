@@ -10,10 +10,19 @@ const ALIGNMENT_OPTIONS = [
 const ALIGNMENT_LABELS  = { 1: "Off", 2: "Neutral", 3: "Aligned" };
 const ALIGNMENT_CLASSES = { 1: "alignment-badge--off", 2: "alignment-badge--neutral", 3: "alignment-badge--aligned" };
 
+const POST_MOOD_OPTIONS = [
+  { value: "great",   emoji: "😊" },
+  { value: "good",    emoji: "🙂" },
+  { value: "neutral", emoji: "😐" },
+  { value: "bad",     emoji: "😕" },
+  { value: "awful",   emoji: "😔" },
+];
+
 export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(task.title);
-  const [showRating, setShowRating] = useState(false);
+  const [ratingStep, setRatingStep] = useState(null); // null | "alignment" | "mood"
+  const [pendingScore, setPendingScore] = useState(null);
 
   function handleSave() {
     if (draft.trim()) onEdit(task._id, draft);
@@ -27,21 +36,35 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
 
   function handleCheck() {
     if (!task.completed) {
-      setShowRating(true);
+      setRatingStep("alignment");
     } else {
       onToggle(task._id);
     }
   }
 
-  function handleRate(score) {
-    onRate(task._id, score);
-    onToggle(task._id);
-    setShowRating(false);
+  function handleAlignmentSelect(score) {
+    setPendingScore(score);
+    setRatingStep("mood");
   }
 
-  function handleSkipRating() {
+  function handleSkipAlignment() {
     onToggle(task._id);
-    setShowRating(false);
+    setRatingStep(null);
+    setPendingScore(null);
+  }
+
+  function handleMoodSelect(mood) {
+    onRate(task._id, { alignmentScore: pendingScore, postMood: mood });
+    onToggle(task._id);
+    setRatingStep(null);
+    setPendingScore(null);
+  }
+
+  function handleSkipMood() {
+    if (pendingScore != null) onRate(task._id, { alignmentScore: pendingScore });
+    onToggle(task._id);
+    setRatingStep(null);
+    setPendingScore(null);
   }
 
   if (editing) {
@@ -85,7 +108,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
     );
   }
 
-  if (showRating) {
+  if (ratingStep === "alignment") {
     return (
       <motion.li
         className="task-item task-item--rating"
@@ -108,12 +131,50 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
                 key={score}
                 type="button"
                 className={`alignment-btn ${cls}`}
-                onClick={() => handleRate(score)}
+                onClick={() => handleAlignmentSelect(score)}
               >
                 {label}
               </button>
             ))}
-            <button type="button" className="alignment-skip" onClick={handleSkipRating}>
+            <button type="button" className="alignment-skip" onClick={handleSkipAlignment}>
+              skip
+            </button>
+          </div>
+        </div>
+      </motion.li>
+    );
+  }
+
+  if (ratingStep === "mood") {
+    return (
+      <motion.li
+        className="task-item task-item--rating"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -16, scale: 0.97 }}
+        transition={{ duration: 0.22 }}
+      >
+        <div className="task-rating-top">
+          {task.energyLevel && (
+            <span className="task-energy-dot" style={{ background: ENERGY_COLORS[task.energyLevel] }} />
+          )}
+          <span className="task-text">{task.title}</span>
+        </div>
+        <div className="task-rating-row">
+          <span className="alignment-prompt-label">How did it leave you?</span>
+          <div className="post-mood-options">
+            {POST_MOOD_OPTIONS.map(({ value, emoji }) => (
+              <button
+                key={value}
+                type="button"
+                className="post-mood-btn"
+                onClick={() => handleMoodSelect(value)}
+                title={value}
+              >
+                {emoji}
+              </button>
+            ))}
+            <button type="button" className="alignment-skip" onClick={handleSkipMood}>
               skip
             </button>
           </div>

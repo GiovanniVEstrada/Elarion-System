@@ -265,6 +265,81 @@
   line-height: 1.4;
 }
 
+/* ── Daily prediction widget ── */
+.prediction-widget {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--border);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prediction-prompt {
+  font-size: 0.83rem;
+  color: var(--text-soft);
+}
+.prediction-prompt--soft { opacity: 0.55; }
+
+.prediction-set-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.prediction-divider { color: var(--text-soft); opacity: 0.3; font-size: 0.9rem; }
+
+.prediction-mood-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.prediction-mood-btn {
+  font-size: 1.35rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  padding: 0;
+}
+.prediction-mood-btn:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(1.1);
+}
+
+.prediction-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.prediction-result-emoji { font-size: 1.4rem; line-height: 1; }
+.prediction-arrow { font-size: 0.85rem; color: var(--text-soft); opacity: 0.35; }
+.prediction-match-label {
+  font-size: 0.83rem;
+  color: var(--text-soft);
+}
+.prediction-accuracy-inline {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+  opacity: 0.4;
+  margin-left: 4px;
+}
+
 /* Empty state */
 .reflect-empty {
   font-size: 0.85rem;

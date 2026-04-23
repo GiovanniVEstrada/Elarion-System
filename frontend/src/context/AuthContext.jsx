@@ -63,7 +63,14 @@ export function AuthProvider({ children }) {
   async function updateUser(name) {
     const res = await client.patch("/auth/me", { name });
     const updated = res.data?.data ?? res.data;
-    setUser((prev) => ({ ...prev, name: updated.name }));
+    setUser((prev) => ({ ...prev, ...updated }));
+  }
+
+  async function patchMe(fields) {
+    const res = await client.patch("/auth/me", fields);
+    const updated = res.data?.data ?? res.data;
+    setUser((prev) => ({ ...prev, ...updated }));
+    return updated;
   }
 
   async function deleteAccount() {
@@ -86,6 +93,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         updateUser,
+        patchMe,
         deleteAccount,
       }}
     >

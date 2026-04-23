@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import client from "../api/client";
 
 export default function Settings() {
   const { user, updateUser, logout, deleteAccount } = useAuth();
+  const navigate = useNavigate();
 
   const [name, setName] = useState(user?.name ?? "");
   const [nameMsg, setNameMsg] = useState(null);
@@ -129,12 +131,34 @@ export default function Settings() {
           </form>
         </motion.section>
 
-        {/* ── Password ── */}
+        {/* ── Focus Areas ── */}
         <motion.section
           className="settings-card"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.35 }}
+        >
+          <h2 className="settings-card-title">Focus Areas</h2>
+          <p className="settings-desc">
+            {user?.focusAreas?.length > 0
+              ? `Aligned with: ${user.focusAreas.join(", ")}`
+              : "No focus areas set yet."}
+          </p>
+          <button
+            className="settings-btn settings-btn--ghost"
+            type="button"
+            onClick={() => navigate("/onboarding")}
+          >
+            {user?.onboardingComplete ? "Edit focus areas" : "Set up focus areas"}
+          </button>
+        </motion.section>
+
+        {/* ── Password ── */}
+        <motion.section
+          className="settings-card"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.35 }}
         >
           <h2 className="settings-card-title">Change Password</h2>
 
@@ -178,11 +202,11 @@ export default function Settings() {
           className="settings-card"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.35 }}
+          transition={{ delay: 0.2, duration: 0.35 }}
         >
           <h2 className="settings-card-title">Your Data</h2>
           <p className="settings-desc">
-            Download all your tasks, habits, journal entries, and moods as a JSON file.
+            Download all your actions, habits, notes, and moods as a JSON file.
           </p>
           <button className="settings-btn" onClick={handleExport} disabled={exporting}>
             {exporting ? "Preparing…" : "Export data"}
@@ -194,7 +218,7 @@ export default function Settings() {
           className="settings-card"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.35 }}
+          transition={{ delay: 0.25, duration: 0.35 }}
         >
           <h2 className="settings-card-title">Account</h2>
           <button
