@@ -7,23 +7,6 @@ import { useHabitsContext } from "../context/HabitsContext";
 import { getTodayStr, formatTime } from "../utils/dateUtils";
 import { useAuth } from "../context/AuthContext";
 
-// ── MOCK DATA — delete this block (and the three _eff_* lines below) when real data flows ──
-const _mn = new Date();
-const _MOCK_EVENTS = [
-  { _id: "m-evt-1", title: "Morning alignment block", date: getTodayStr(),
-    time: `${_mn.getHours()}:${String(_mn.getMinutes()).padStart(2, "0")}` },
-];
-const _MOCK_TASKS = [
-  { _id: "m-task-1", title: "Write project proposal",      completed: false, priority: "high"   },
-  { _id: "m-task-2", title: "Review design system notes",  completed: false                     },
-  { _id: "m-task-3", title: "Send weekly update",          completed: false, priority: "medium" },
-];
-const _MOCK_HABITS = [
-  { _id: "m-hab-1", name: "Morning journal", active: true, completedDates: [] },
-  { _id: "m-hab-2", name: "Evening walk",    active: true, completedDates: [] },
-];
-// ── END MOCK ─────────────────────────────────────────────────────────────────────────────────
-
 const DAY_ABBRS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const CELL_W = 46;
 const CELL_GAP = 6;
@@ -196,25 +179,19 @@ export default function Dashboard() {
   const todayStr = getTodayStr();
   const today    = new Date();
 
-  // ── delete these three lines with the mock block above when real data flows ──
-  const _eff_events = events.length === 0 ? _MOCK_EVENTS : events;
-  const _eff_tasks  = tasks.length  === 0 ? _MOCK_TASKS  : tasks;
-  const _eff_habits = habits.length === 0 ? _MOCK_HABITS : habits;
-  // ────────────────────────────────────────────────────────────────────────────
-
   const todayEvents = useMemo(
-    () => _eff_events.filter((e) => e.date === todayStr),
-    [_eff_events, todayStr]
+    () => events.filter((e) => e.date === todayStr),
+    [events, todayStr]
   );
 
   const pendingTasks = useMemo(
-    () => _eff_tasks.filter((t) => !t.completed),
-    [_eff_tasks]
+    () => tasks.filter((t) => !t.completed),
+    [tasks]
   );
 
   const pendingHabits = useMemo(
-    () => _eff_habits.filter((h) => h.active !== false && !completedToday(h)),
-    [_eff_habits, completedToday]
+    () => habits.filter((h) => h.active !== false && !completedToday(h)),
+    [habits, completedToday]
   );
 
   const nowItems = useMemo(

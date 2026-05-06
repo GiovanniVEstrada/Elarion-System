@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 ];
 
 const ROUTE_TITLES = {
-  "/": "Thursday · Apr 30",
+  "/": "Today",
   "/calendar": "Calendar",
   "/tasks": "Actions",
   "/journal": "Reflect Log",
@@ -22,7 +22,7 @@ const ROUTE_TITLES = {
 };
 
 function getInitial(user) {
-  return (user?.name || user?.email || "M").slice(0, 1).toUpperCase();
+  return (user?.name || user?.email || "E").slice(0, 1).toUpperCase();
 }
 
 export default function Navbar() {
@@ -59,10 +59,10 @@ export default function Navbar() {
           </NavLink>
         ) : isGuest ? (
           <Link to="/login" className="nav-profile-btn" aria-label="Log in">
-            G
+            E
           </Link>
         ) : (
-          <span className="nav-profile-btn">M</span>
+          <span className="nav-profile-btn">E</span>
         )}
       </motion.header>
 
@@ -89,8 +89,8 @@ export default function Navbar() {
               <div className="side-drawer-profile">
                 <div className="side-drawer-avatar">{getInitial(user)}</div>
                 <div>
-                  <strong>{user?.name || "Mira Halden"}</strong>
-                  <span>Tide · variant A</span>
+                  <strong>{user?.name || "Elarion"}</strong>
+                  <span>{user ? "Tide account" : "Sign in to sync your tide"}</span>
                 </div>
               </div>
 
