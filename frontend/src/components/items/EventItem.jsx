@@ -3,70 +3,69 @@ import { getTodayStr } from "../../utils/dateUtils";
 
 const FEELINGS = ["energizing", "neutral", "necessary", "draining"];
 const FEELING_META = {
-  energizing: { label: "Energizing", cls: "feeling-chip--energizing" },
-  neutral:    { label: "Neutral",    cls: "feeling-chip--neutral"    },
-  necessary:  { label: "Necessary",  cls: "feeling-chip--necessary"  },
-  draining:   { label: "Draining",   cls: "feeling-chip--draining"   },
+  energizing: { label: "Energizing", color: "#64dc82" },
+  neutral:    { label: "Neutral",    color: "#74d8ff" },
+  necessary:  { label: "Necessary",  color: "#ffc83c" },
+  draining:   { label: "Draining",   color: "#ff5a5a" },
 };
 
 export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling, formatDate, formatTime }) {
-  const isPast = event.date < getTodayStr();
+  const isPast       = event.date < getTodayStr();
+  const feelingColor = event.expectedFeeling
+    ? FEELING_META[event.expectedFeeling].color
+    : "rgba(78, 205, 196, 0.35)";
 
   return (
     <motion.li
-      className="calendar-event"
+      className="cal-event-item"
+      style={{ "--feeling-color": feelingColor }}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -16, scale: 0.97 }}
       transition={{ duration: 0.22 }}
     >
-      <div className="calendar-event-info">
-        <div className="calendar-event-title-row">
-          <h3>{event.title}</h3>
-          {event.expectedFeeling && (
-            <span className={`feeling-chip ${FEELING_META[event.expectedFeeling].cls}`}>
-              {FEELING_META[event.expectedFeeling].label}
-            </span>
-          )}
-        </div>
-        <p className="calendar-event-date">
-          {formatDate(event.date)}
-          {event.time && formatTime && (
-            <span style={{ opacity: 0.7 }}> · {formatTime(event.time)}</span>
-          )}
-        </p>
+      <span className="cal-event-feeling-dot" aria-hidden="true" />
 
-        {isPast && onSetActualFeeling && (
-          <div className="actual-feeling-row">
-            {event.actualFeeling ? (
-              <span className={`feeling-chip ${FEELING_META[event.actualFeeling].cls}`}>
-                Actually: {FEELING_META[event.actualFeeling].label}
-              </span>
-            ) : (
-              <div className="actual-feeling-prompt">
-                <span className="actual-feeling-label">How was it?</span>
-                <div className="feeling-picker feeling-picker--inline">
-                  {FEELINGS.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`feeling-btn feeling-btn--${f}`}
-                      onClick={() => onSetActualFeeling(event._id, f)}
-                    >
-                      {FEELING_META[f].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+      <div className="cal-event-body">
+        <span className="cal-event-title">{event.title}</span>
+        <span className="cal-event-meta">
+          {formatDate(event.date)}
+          {event.time && formatTime && ` · ${formatTime(event.time)}`}
+        </span>
+
+        {isPast && onSetActualFeeling && !event.actualFeeling && (
+          <div className="cal-event-prompt">
+            <span className="cal-event-prompt-label">How was it?</span>
+            <div className="feeling-picker feeling-picker--inline">
+              {FEELINGS.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className="feeling-btn"
+                  style={{ "--feeling-color": FEELING_META[f].color }}
+                  onClick={() => onSetActualFeeling(event._id, f)}
+                >
+                  {FEELING_META[f].label}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
+
+        {isPast && event.actualFeeling && (
+          <span
+            className="cal-event-actual"
+            style={{ color: FEELING_META[event.actualFeeling]?.color }}
+          >
+            Was: {FEELING_META[event.actualFeeling]?.label}
+          </span>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: "8px", flexShrink: 0, alignSelf: "flex-start" }}>
+      <div className="cal-event-actions">
         {onEdit && (
           <motion.button
-            className="calendar-edit-btn"
+            className="cal-event-edit-btn"
             type="button"
             onClick={() => onEdit(event._id)}
             whileHover={{ y: -1 }}
@@ -76,7 +75,7 @@ export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling,
           </motion.button>
         )}
         <motion.button
-          className="calendar-delete-btn"
+          className="cal-event-del-btn"
           type="button"
           onClick={() => onDelete(event._id)}
           whileHover={{ y: -1 }}

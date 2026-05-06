@@ -9,7 +9,6 @@ import { HabitsProvider } from "./context/HabitsContext";
 import { MoodsProvider } from "./context/MoodsContext";
 import { ReflectionsProvider } from "./context/ReflectionsContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
-import GuestBanner from "./components/layout/GuestBanner";
 import Navbar from "./components/layout/Navbar";
 import BottomNav from "./components/layout/BottomNav";
 import Footer from "./components/layout/Footer";
@@ -88,7 +87,6 @@ function AppShell() {
                   <div className="bg-orb bg-orb-2" />
                   <div className="bg-orb bg-orb-3" />
                   <OfflineBanner />
-                  <GuestBanner />
                   <Navbar />
                   <BottomNav />
                   <AnimatedRoutes />

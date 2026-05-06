@@ -472,3 +472,318 @@
 .mood-quick-btns--compact .mood-quick-label {
   display: none;
 }
+
+/* ── Tasks / Habits Page Hero ── */
+
+.tasks-hero {
+  padding: 4px 0 20px;
+}
+
+.tasks-hero-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.tasks-hero-title {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-primary, #f0f0f0);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-shadow:
+    0 0 40px rgba(78, 205, 196, 0.15),
+    0 0 80px rgba(78, 205, 196, 0.06);
+}
+
+/* ── Filter bar (compact, no glass card) ── */
+
+.task-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.task-filter-stat {
+  font-size: 0.8rem;
+  color: var(--text-muted, #8892a4);
+  margin-left: auto;
+}
+
+/* ── Tier groups ── */
+
+.task-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.task-tier-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-tier-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 2px;
+  padding-left: 2px;
+}
+
+.task-tier-label--deep    { color: rgba(255, 100, 100, 0.75); }
+.task-tier-label--mid     { color: rgba(255, 200, 60,  0.72); }
+.task-tier-label--surface { color: rgba(78,  205, 196, 0.78); }
+.task-tier-label--done    { color: rgba(140, 168, 179, 0.45); }
+
+.task-tier-group--done .task-item {
+  opacity: 0.55;
+}
+
+/* ── Empty state ── */
+
+.tasks-empty {
+  text-align: center;
+  padding: 48px 20px 36px;
+}
+
+.tasks-empty-headline {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--text-soft);
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.tasks-empty-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted, #8892a4);
+  opacity: 0.65;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Habit glass card modifier ── */
+
+.habit-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--border);
+  box-shadow: var(--glass-shadow);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.habit-card:hover {
+  border-color: rgba(78, 205, 196, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(78, 205, 196, 0.08),
+    var(--glass-shadow);
+}
+
+.habit-card--done {
+  opacity: 0.62;
+}
+
+.habit-card--done .habit-complete-btn.done {
+  border-color: rgba(78, 205, 196, 0.55);
+  background: rgba(78, 205, 196, 0.14);
+  color: var(--accent-teal, #4ecdc4);
+}
+
+/* ── FAB button ── */
+
+.task-fab {
+  position: fixed;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 18px);
+  right: 20px;
+  z-index: 700;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-teal, #4ecdc4);
+  color: #0d1117;
+  font-size: 1.75rem;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 22px rgba(78, 205, 196, 0.5),
+    0 0 44px rgba(78, 205, 196, 0.18),
+    0 8px 28px -8px rgba(0, 0, 0, 0.55);
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.task-fab--open {
+  background: rgba(78, 205, 196, 0.85);
+  box-shadow:
+    0 0 28px rgba(78, 205, 196, 0.55),
+    0 8px 28px -8px rgba(0, 0, 0, 0.55);
+}
+
+@media (min-width: 769px) {
+  .task-fab {
+    bottom: 24px;
+  }
+}
+
+/* ── FAB backdrop ── */
+
+.fab-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(3, 11, 20, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ── FAB slide-up panel ── */
+
+.fab-panel {
+  position: fixed;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 88px);
+  left: 12px;
+  right: 12px;
+  z-index: 650;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(78, 205, 196, 0.2);
+  background: rgba(8, 18, 30, 0.96);
+  backdrop-filter: blur(28px) saturate(130%);
+  -webkit-backdrop-filter: blur(28px) saturate(130%);
+  box-shadow:
+    0 0 0 1px rgba(78, 205, 196, 0.08),
+    0 -4px 32px rgba(0, 0, 0, 0.45),
+    0 24px 48px -16px rgba(0, 0, 0, 0.5);
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+@media (min-width: 769px) {
+  .fab-panel {
+    left: auto;
+    right: 24px;
+    bottom: 96px;
+    width: 340px;
+  }
+}
+
+.fab-panel-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+
+@media (max-width: 768px) {
+  .tasks-hero,
+  .cal-hero,
+  .journal-hero,
+  .settings-hero {
+    padding-top: 10px;
+    padding-bottom: 30px;
+  }
+
+  .tasks-hero-kicker,
+  .cal-hero-kicker,
+  .journal-hero-kicker,
+  .settings-hero-kicker {
+    color: #75dfff;
+    letter-spacing: 0.18em;
+  }
+
+  .tasks-hero-title,
+  .cal-hero-title,
+  .journal-hero-title,
+  .settings-hero-title,
+  .home-hero-date {
+    font-size: clamp(2.25rem, 11vw, 3.1rem);
+    text-shadow: 0 0 34px rgba(126, 216, 255, 0.16);
+  }
+
+  .task-item,
+  .habit-item.habit-card {
+    min-height: 74px;
+    border-radius: 18px;
+    border-color: rgba(126, 216, 255, 0.2);
+    background:
+      linear-gradient(180deg, rgba(99, 137, 180, 0.34), rgba(20, 81, 92, 0.46)),
+      rgba(255, 255, 255, 0.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 14px 28px -22px rgba(0, 0, 0, 0.65);
+    overflow: hidden;
+  }
+
+  .task-item::after,
+  .habit-item.habit-card::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(126, 216, 255, 0.65), transparent);
+    opacity: 0.55;
+  }
+
+  .task-item {
+    position: relative;
+  }
+
+  .task-left input[type="checkbox"],
+  .habit-complete-btn {
+    border-color: rgba(78, 205, 196, 0.7);
+  }
+
+  .task-fab,
+  .journal-fab {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+    right: max(22px, calc((100vw - 430px) / 2 + 22px));
+    background: rgba(103, 147, 199, 0.72);
+    color: var(--text-h);
+    border: 1px solid rgba(126, 216, 255, 0.45);
+    box-shadow:
+      0 0 30px rgba(126, 216, 255, 0.32),
+      0 10px 28px -12px rgba(0, 0, 0, 0.7);
+  }
+
+  .page-tab-bar {
+    margin-bottom: 24px;
+  }
+
+  .task-filter-bar {
+    margin-bottom: 20px;
+  }
+
+  .tasks-page-shell,
+  .task-tiers {
+    gap: 26px;
+  }
+
+  .task-tier-group {
+    gap: 12px;
+  }
+
+  .task-list {
+    gap: 12px;
+  }
+}

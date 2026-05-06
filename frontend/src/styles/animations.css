@@ -2,11 +2,6 @@
 
 /* 768px — phones & small tablets */
 @media (max-width: 768px) {
-  .dashboard,
-  .feature-page {
-    padding: 16px 14px 28px;
-  }
-
   .dashboard-header {
     margin-bottom: 18px;
   }

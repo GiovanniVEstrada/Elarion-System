@@ -31,6 +31,14 @@
 
   --sans: "Poppins", "Segoe UI", Roboto, sans-serif;
   --heading: "Poppins", "Segoe UI", Roboto, sans-serif;
+  --serif: "Playfair Display", Georgia, serif;
+
+  --accent-teal: #4ecdc4;
+  --accent-teal-rgb: 78, 205, 196;
+  --text-primary: #f0f0f0;
+  --text-muted: #8892a4;
+  --bg-navy: #0d1117;
+  --bg-indigo: #1a1f3a;
 
   font: 18px/145% var(--sans);
   color: var(--text);

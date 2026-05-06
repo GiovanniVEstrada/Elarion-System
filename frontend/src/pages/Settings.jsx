@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
+import { useHabitsContext } from "../context/HabitsContext";
+import PageShell from "../components/layout/PageShell";
 import client from "../api/client";
+
+function habitStreak(habit) {
+  return habit.currentStreak ?? habit.streak ?? 0;
+}
 
 export default function Settings() {
   const { user, updateUser, logout, deleteAccount } = useAuth();
+  const { habits } = useHabitsContext();
   const navigate = useNavigate();
 
   const [name, setName] = useState(user?.name ?? "");
@@ -22,6 +29,13 @@ export default function Settings() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [exporting, setExporting] = useState(false);
+
+  const streakSummary = useMemo(() => {
+    const current = habits.reduce((max, habit) => Math.max(max, habitStreak(habit)), 0);
+    const active = habits.filter((habit) => habit.active !== false).length;
+    const completions = habits.reduce((total, habit) => total + (habit.completedDates?.length ?? 0), 0);
+    return { current, active, completions };
+  }, [habits]);
 
   async function handleUpdateName(e) {
     e.preventDefault();
@@ -65,7 +79,7 @@ export default function Settings() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      // silent — browser shows download error natively
+      // The browser will surface download failures.
     } finally {
       setExporting(false);
     }
@@ -82,32 +96,38 @@ export default function Settings() {
   }
 
   return (
-    <div className="feature-page">
-      <motion.div
-        className="feature-page-header"
-        initial={{ opacity: 0, y: 12 }}
+    <PageShell>
+      <motion.header
+        className="settings-hero"
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
+        transition={{ duration: 0.36, ease: "easeOut" }}
       >
-        <h1>Settings</h1>
-        <p>Manage your account and data.</p>
-      </motion.div>
+        <p className="settings-hero-kicker">Settings</p>
+        <h1 className="settings-hero-title">Your harbor</h1>
+      </motion.header>
 
-      <div className="settings-sections">
-
-        {/* ── Profile ── */}
+      <div className="settings-layout">
         <motion.section
-          className="settings-card"
+          className="settings-card settings-card--account"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.35 }}
         >
-          <h2 className="settings-card-title">Profile</h2>
+          <div className="settings-card-heading">
+            <p>Account</p>
+            <h2>Identity and access</h2>
+          </div>
 
-          <p className="settings-meta">
-            <span className="settings-label">Email</span>
-            <span className="settings-value">{user?.email}</span>
-          </p>
+          <div className="settings-profile-row">
+            <div className="settings-avatar" aria-hidden="true">
+              {(user?.name || user?.email || "E").slice(0, 1).toUpperCase()}
+            </div>
+            <p className="settings-meta">
+              <span className="settings-label">Email</span>
+              <span className="settings-value">{user?.email}</span>
+            </p>
+          </div>
 
           <form className="settings-form" onSubmit={handleUpdateName}>
             <label className="settings-label" htmlFor="settings-name">Display name</label>
@@ -126,43 +146,11 @@ export default function Settings() {
               </p>
             )}
             <button className="settings-btn" type="submit" disabled={nameSaving}>
-              {nameSaving ? "Saving…" : "Save name"}
+              {nameSaving ? "Saving..." : "Save name"}
             </button>
           </form>
-        </motion.section>
 
-        {/* ── Focus Areas ── */}
-        <motion.section
-          className="settings-card"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.35 }}
-        >
-          <h2 className="settings-card-title">Focus Areas</h2>
-          <p className="settings-desc">
-            {user?.focusAreas?.length > 0
-              ? `Aligned with: ${user.focusAreas.join(", ")}`
-              : "No focus areas set yet."}
-          </p>
-          <button
-            className="settings-btn settings-btn--ghost"
-            type="button"
-            onClick={() => navigate("/onboarding")}
-          >
-            {user?.onboardingComplete ? "Edit focus areas" : "Set up focus areas"}
-          </button>
-        </motion.section>
-
-        {/* ── Password ── */}
-        <motion.section
-          className="settings-card"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.35 }}
-        >
-          <h2 className="settings-card-title">Change Password</h2>
-
-          <form className="settings-form" onSubmit={handleChangePassword}>
+          <form className="settings-form settings-form--password" onSubmit={handleChangePassword}>
             <label className="settings-label" htmlFor="settings-current-pw">Current password</label>
             <input
               id="settings-current-pw"
@@ -191,52 +179,107 @@ export default function Settings() {
                 {pwMsg.text}
               </p>
             )}
-            <button className="settings-btn" type="submit" disabled={pwSaving}>
-              {pwSaving ? "Updating…" : "Update password"}
+            <button className="settings-btn settings-btn--ghost" type="submit" disabled={pwSaving}>
+              {pwSaving ? "Updating..." : "Update password"}
             </button>
           </form>
-        </motion.section>
 
-        {/* ── Data ── */}
-        <motion.section
-          className="settings-card"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.35 }}
-        >
-          <h2 className="settings-card-title">Your Data</h2>
-          <p className="settings-desc">
-            Download all your actions, habits, notes, and moods as a JSON file.
-          </p>
-          <button className="settings-btn" onClick={handleExport} disabled={exporting}>
-            {exporting ? "Preparing…" : "Export data"}
-          </button>
-        </motion.section>
-
-        {/* ── Account ── */}
-        <motion.section
-          className="settings-card"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.35 }}
-        >
-          <h2 className="settings-card-title">Account</h2>
-          <button
-            className="settings-btn settings-btn--ghost"
-            onClick={logout}
-          >
+          <button className="settings-btn settings-btn--quiet" type="button" onClick={logout}>
             Sign out
           </button>
         </motion.section>
 
-        {/* ── Danger Zone ── */}
+        <div className="settings-side-stack">
+          <motion.section
+            className="settings-card"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.35 }}
+          >
+            <div className="settings-card-heading">
+              <p>Appearance</p>
+              <h2>Night glass</h2>
+            </div>
+            <div className="settings-swatches" aria-label="Theme colors">
+              <span style={{ "--swatch": "var(--bg-navy)" }} />
+              <span style={{ "--swatch": "var(--bg-indigo)" }} />
+              <span style={{ "--swatch": "var(--accent-teal)" }} />
+            </div>
+            <p className="settings-desc">
+              Deep navy surfaces, soft glass, and teal as the primary action state.
+            </p>
+          </motion.section>
+
+          <motion.section
+            className="settings-card"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.35 }}
+          >
+            <div className="settings-card-heading">
+              <p>Data</p>
+              <h2>Your record</h2>
+            </div>
+
+            <div className="settings-streak-counter">
+              <span className="settings-streak-value">{streakSummary.current}</span>
+              <span className="settings-streak-label">day streak</span>
+            </div>
+
+            <div className="settings-stat-grid">
+              <p>
+                <span>{streakSummary.active}</span>
+                active habits
+              </p>
+              <p>
+                <span>{streakSummary.completions}</span>
+                check-ins
+              </p>
+            </div>
+
+            <p className="settings-desc">
+              Download all your actions, habits, notes, and moods as a JSON file.
+            </p>
+            <button className="settings-btn" type="button" onClick={handleExport} disabled={exporting}>
+              {exporting ? "Preparing..." : "Export data"}
+            </button>
+          </motion.section>
+
+          <motion.section
+            className="settings-card"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.35 }}
+          >
+            <div className="settings-card-heading">
+              <p>Focus</p>
+              <h2>Alignment map</h2>
+            </div>
+            <p className="settings-desc">
+              {user?.focusAreas?.length > 0
+                ? `Aligned with: ${user.focusAreas.join(", ")}`
+                : "No focus areas set yet."}
+            </p>
+            <button
+              className="settings-btn settings-btn--ghost"
+              type="button"
+              onClick={() => navigate("/onboarding")}
+            >
+              {user?.onboardingComplete ? "Edit focus areas" : "Set up focus areas"}
+            </button>
+          </motion.section>
+        </div>
+
         <motion.section
           className="settings-card settings-card--danger"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.35 }}
         >
-          <h2 className="settings-card-title settings-card-title--danger">Danger Zone</h2>
+          <div className="settings-card-heading">
+            <p>Danger zone</p>
+            <h2>Close the harbor</h2>
+          </div>
           <p className="settings-desc">
             Permanently delete your account and all data. This cannot be undone.
           </p>
@@ -244,6 +287,7 @@ export default function Settings() {
           {deleteStep === 0 && (
             <button
               className="settings-btn settings-btn--danger"
+              type="button"
               onClick={() => setDeleteStep(1)}
             >
               Delete my account
@@ -265,23 +309,24 @@ export default function Settings() {
               <div className="settings-delete-actions">
                 <button
                   className="settings-btn settings-btn--ghost"
+                  type="button"
                   onClick={() => { setDeleteStep(0); setDeleteConfirm(""); }}
                 >
                   Cancel
                 </button>
                 <button
                   className="settings-btn settings-btn--danger"
+                  type="button"
                   disabled={deleteConfirm !== "DELETE" || deleteLoading}
                   onClick={handleDelete}
                 >
-                  {deleteLoading ? "Deleting…" : "Confirm delete"}
+                  {deleteLoading ? "Deleting..." : "Confirm delete"}
                 </button>
               </div>
             </div>
           )}
         </motion.section>
-
       </div>
-    </div>
+    </PageShell>
   );
 }

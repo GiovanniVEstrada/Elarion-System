@@ -1,14 +1,77 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useJournalContext } from "../context/JournalContext";
 import PageShell from "../components/layout/PageShell";
-import SectionHeader from "../components/layout/SectionHeader";
 import JournalEntry from "../components/items/JournalEntry";
 import SkeletonList from "../components/SkeletonList";
 import { tapAnim, hoverAnim } from "../utils/motion";
 
+const MOOD_OPTIONS = [
+  { value: 1, label: "Low", color: "#ff6b6b" },
+  { value: 2, label: "Heavy", color: "#ff9f43" },
+  { value: 3, label: "Even", color: "#ffd166" },
+  { value: 4, label: "Light", color: "#7bd88f" },
+  { value: 5, label: "Bright", color: "#4ecdc4" },
+];
+
+const MENTAL_STATES = ["focused", "calm", "creative", "tired", "scattered", "anxious", "energized"];
+
+const MOOD_TO_STATE = {
+  5: { label: "RISING", color: "#4ecdc4" },
+  4: { label: "OPEN", color: "#74d8ff" },
+  3: { label: "STILL", color: "#7ef0d3" },
+  2: { label: "TENDER", color: "#b58cff" },
+  1: { label: "RESTLESS", color: "#ff6b6b" },
+  great: { label: "RISING", color: "#4ecdc4" },
+  good: { label: "OPEN", color: "#74d8ff" },
+  neutral: { label: "STILL", color: "#7ef0d3" },
+  bad: { label: "TENDER", color: "#b58cff" },
+  awful: { label: "RESTLESS", color: "#ff6b6b" },
+};
+
+function moodMeta(value) {
+  return MOOD_OPTIONS.find((option) => option.value === value) ?? {
+    value: null,
+    label: "Open",
+    color: "rgba(140, 168, 179, 0.5)",
+  };
+}
+
+function formatEntryStamp(raw) {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatGroupDate(raw) {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("en-US", { month: "short", day: "numeric" }).toUpperCase();
+}
+
+function groupEntriesByDate(entries) {
+  return entries.reduce((groups, entry) => {
+    const key = formatGroupDate(entry.createdAt) || "UNDATED";
+    const existing = groups.find((group) => group.key === key);
+    if (existing) existing.entries.push(entry);
+    else groups.push({ key, entries: [entry] });
+    return groups;
+  }, []);
+}
+
 export default function Journal() {
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const editorRef = useRef(null);
+  const titleRef = useRef(null);
+
   const {
     entries,
     filteredEntries,
@@ -46,16 +109,37 @@ export default function Journal() {
     refetch,
   } = useJournalContext();
 
-  const MOOD_EMOJIS = ["😔", "😕", "😐", "🙂", "😊"];
-  const MENTAL_STATES = ["focused", "calm", "creative", "tired", "scattered", "anxious", "energized"];
+  const groupedEntries = useMemo(
+    () => groupEntriesByDate(filteredEntries),
+    [filteredEntries]
+  );
+
+  function focusNewEntry() {
+    stopEditing();
+    setSelectedId(null);
+    setShowSidebar(false);
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      titleRef.current?.focus();
+    });
+  }
+
+  function toggleEntry(entryId) {
+    setSelectedId(entryId);
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(entryId)) next.delete(entryId);
+      else next.add(entryId);
+      return next;
+    });
+  }
 
   if (loading) return (
     <PageShell>
-      <SectionHeader
-        kicker="Workspace"
-        title="Reflection Log"
-        subtitle="Capture thoughts and notes — a space where patterns emerge over time."
-      />
+      <motion.header className="journal-hero">
+        <p className="journal-hero-kicker">Reflection Log</p>
+        <h1 className="journal-hero-title">What you noticed</h1>
+      </motion.header>
       <SkeletonList count={5} />
     </PageShell>
   );
@@ -71,29 +155,31 @@ export default function Journal() {
 
   return (
     <PageShell>
-      <SectionHeader
-        kicker="Workspace"
-        title="Reflection Log"
-        subtitle="Capture thoughts and notes — a space where patterns emerge over time."
-      />
+      <motion.header
+        className="journal-hero"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.36, ease: "easeOut" }}
+      >
+        <p className="journal-hero-kicker">{entries.length} entries</p>
+        <h1 className="journal-hero-title">What you noticed</h1>
+      </motion.header>
 
       <motion.div
         className="journal-page-shell"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.38 }}
+        transition={{ delay: 0.08, duration: 0.38 }}
       >
         <button
           type="button"
           className="journal-sidebar-toggle"
           onClick={() => setShowSidebar((s) => !s)}
         >
-          {showSidebar ? "▲ Hide notes" : "▼ Browse notes"}
+          {showSidebar ? "Hide notes" : "Browse notes"}
         </button>
 
         <aside className={`journal-sidebar${showSidebar ? "" : " journal-sidebar-hidden"}`}>
-
-          {/* Folders */}
           <div className="journal-folders">
             <div className="journal-folders-header">
               <h3>Folders</h3>
@@ -101,6 +187,7 @@ export default function Journal() {
                 className="journal-folder-add-btn"
                 type="button"
                 onClick={() => setAddingFolder(true)}
+                aria-label="Add folder"
               >
                 +
               </button>
@@ -115,7 +202,10 @@ export default function Journal() {
                 onChange={(e) => setNewFolderName(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddFolder();
-                  if (e.key === "Escape") { setAddingFolder(false); setNewFolderName(""); }
+                  if (e.key === "Escape") {
+                    setAddingFolder(false);
+                    setNewFolderName("");
+                  }
                 }}
                 onBlur={handleAddFolder}
               />
@@ -146,8 +236,9 @@ export default function Journal() {
                     type="button"
                     className="journal-folder-delete-btn"
                     onClick={() => handleDeleteFolder(folder.id)}
+                    aria-label={`Delete ${folder.name}`}
                   >
-                    ×
+                    x
                   </button>
                 </div>
               );
@@ -162,41 +253,66 @@ export default function Journal() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          <div className="journal-note-list">
+          <div className="reflect-log-timeline">
             <AnimatePresence>
               {filteredEntries.length === 0 ? (
-                <p className="journal-sidebar-empty">
-                  {searchQuery ? "No notes match your search." : "No notes yet."}
-                </p>
+                <div className="journal-empty journal-empty--compact">
+                  <p className="journal-empty-headline">
+                    {searchQuery ? "No echo here." : "No pages yet."}
+                  </p>
+                  <p className="journal-empty-sub">
+                    {searchQuery ? "Try a softer search." : "Start a note with the + button."}
+                  </p>
+                </div>
               ) : (
-                filteredEntries.map((entry) => (
-                  <motion.button
-                    key={entry._id}
-                    type="button"
-                    className={
-                      selectedId === entry._id || (!selectedId && selectedEntry?._id === entry._id)
-                        ? "journal-note-item active"
-                        : "journal-note-item"
-                    }
-                    onClick={() => setSelectedId(entry._id)}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -12, scale: 0.97 }}
-                    transition={{ duration: 0.2 }}
-                    {...hoverAnim}
-                    {...tapAnim}
-                  >
-                    <strong>{entry.title}</strong>
-                    {entry.content && (
-                      <p className="journal-note-preview">{entry.content}</p>
-                    )}
-                    {activeFolderId === null && entry.folder && (
-                      <span className="journal-note-folder-pill">
-                        {entry.folder}
-                      </span>
-                    )}
-                    <span>{entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : ""}</span>
-                  </motion.button>
+                groupedEntries.map((group) => (
+                  <div className="reflect-log-group" key={group.key}>
+                    <div className="reflect-log-date-row">
+                      <span>{group.key}</span>
+                    </div>
+                    {group.entries.map((entry) => {
+                      const state = MOOD_TO_STATE[entry.mood] ?? moodMeta(entry.mood);
+                      const expanded = expandedIds.has(entry._id);
+                      return (
+                        <motion.button
+                          key={entry._id}
+                          type="button"
+                          className={[
+                            "reflect-log-entry",
+                            expanded && "reflect-log-entry--expanded",
+                            selectedId === entry._id || (!selectedId && selectedEntry?._id === entry._id)
+                              ? "active"
+                              : "",
+                          ].filter(Boolean).join(" ")}
+                          onClick={() => toggleEntry(entry._id)}
+                          style={{ "--mood-color": state.color }}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -12, scale: 0.97 }}
+                          transition={{ duration: 0.2 }}
+                          {...hoverAnim}
+                          {...tapAnim}
+                        >
+                          <span className="reflect-log-dot" />
+                          <span className="reflect-log-card">
+                            <span className="reflect-log-topline">
+                              <span>{formatEntryStamp(entry.createdAt)}</span>
+                              <span className="reflect-log-state">{state.label}</span>
+                            </span>
+                            {entry.title && (
+                              <strong className="reflect-log-title">{entry.title}</strong>
+                            )}
+                            {entry.content && (
+                              <span className="reflect-log-body">{entry.content}</span>
+                            )}
+                            {entry.mentalState && (
+                              <span className="reflect-log-mental">{entry.mentalState}</span>
+                            )}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 ))
               )}
             </AnimatePresence>
@@ -204,45 +320,49 @@ export default function Journal() {
         </aside>
 
         <div className="journal-editor-wrap">
-          <div className="journal-editor-card">
-            <h2>{editingId ? "Edit Note" : "Create Note"}</h2>
+          <section className="journal-editor-card" ref={editorRef}>
+            <div className="journal-card-heading">
+              <p>{editingId ? "Revision" : "New entry"}</p>
+              <h2>{editingId ? "Return to the note" : "Write what is true"}</h2>
+            </div>
 
             <form className="journal-page-form" onSubmit={handleAddEntry}>
               <input
+                ref={titleRef}
                 className="journal-title-input"
                 type="text"
-                placeholder="Note title..."
+                placeholder="Entry title..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
 
               <textarea
                 className="journal-textarea journal-page-textarea"
-                placeholder="Write your note..."
+                placeholder="Let the record be quiet and exact..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows="10"
               />
 
               <div className="journal-meta-pickers">
-                {/* Mood */}
                 <div className="picker-group">
                   <span className="picker-label">Mood</span>
                   <div className="mood-picker">
-                    {MOOD_EMOJIS.map((emoji, i) => (
+                    {MOOD_OPTIONS.map((option) => (
                       <button
-                        key={i}
+                        key={option.value}
                         type="button"
-                        className={`mood-btn${mood === i + 1 ? " active" : ""}`}
-                        onClick={() => setMood(mood === i + 1 ? null : i + 1)}
+                        className={`mood-btn${mood === option.value ? " active" : ""}`}
+                        onClick={() => setMood(mood === option.value ? null : option.value)}
+                        style={{ "--mood-color": option.color }}
+                        aria-label={option.label}
                       >
-                        {emoji}
+                        {option.value}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Clarity */}
                 <div className="picker-group">
                   <span className="picker-label">Clarity</span>
                   <div className="clarity-picker">
@@ -252,12 +372,12 @@ export default function Journal() {
                         type="button"
                         className={`clarity-dot${clarity >= n ? " filled" : ""}`}
                         onClick={() => setClarity(clarity === n ? null : n)}
+                        aria-label={`Clarity ${n}`}
                       />
                     ))}
                   </div>
                 </div>
 
-                {/* Mental state */}
                 <div className="picker-group">
                   <span className="picker-label">State</span>
                   <div className="mental-state-picker">
@@ -279,9 +399,7 @@ export default function Journal() {
                 <select
                   className="journal-folder-select"
                   value={activeFolderId ?? ""}
-                  onChange={(e) =>
-                    setActiveFolderId(e.target.value || null)
-                  }
+                  onChange={(e) => setActiveFolderId(e.target.value || null)}
                 >
                   <option value="">No folder</option>
                   {folders.map((f) => (
@@ -292,7 +410,7 @@ export default function Journal() {
                 </select>
               )}
 
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div className="journal-form-actions">
                 <motion.button
                   className="journal-add-btn"
                   type="submit"
@@ -315,10 +433,13 @@ export default function Journal() {
                 )}
               </div>
             </form>
-          </div>
+          </section>
 
-          <div className="journal-preview-card">
-            <h2>Selected Note</h2>
+          <section className="journal-preview-card">
+            <div className="journal-card-heading">
+              <p>Selected note</p>
+              <h2>Held in view</h2>
+            </div>
 
             <AnimatePresence mode="wait">
               {selectedEntry ? (
@@ -330,20 +451,32 @@ export default function Journal() {
                   className="journal-entry journal-entry-full"
                 />
               ) : (
-                <motion.p
+                <motion.div
                   key="empty"
                   className="journal-empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  Select or create a note.
-                </motion.p>
+                  <p className="journal-empty-headline">A blank page waits.</p>
+                  <p className="journal-empty-sub">Select a note or begin a new record.</p>
+                </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </section>
         </div>
       </motion.div>
+
+      <motion.button
+        className="journal-fab"
+        type="button"
+        aria-label="New journal entry"
+        onClick={focusNewEntry}
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.94 }}
+      >
+        +
+      </motion.button>
     </PageShell>
   );
 }

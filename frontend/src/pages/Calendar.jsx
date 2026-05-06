@@ -1,77 +1,91 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useCalendarContext } from "../context/CalendarContext";
 import PageShell from "../components/layout/PageShell";
-import SectionHeader from "../components/layout/SectionHeader";
 import EventItem from "../components/items/EventItem";
 import { getTodayStr, toDateStr } from "../utils/dateUtils";
 import { tapAnim, hoverAnim } from "../utils/motion";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
+const DAYS    = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS  = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+const FEELINGS       = ["energizing", "neutral", "necessary", "draining"];
+const FEELING_LABELS = { energizing: "Energizing", neutral: "Neutral", necessary: "Necessary", draining: "Draining" };
+const FEELING_COLORS = { energizing: "#64dc82", neutral: "#74d8ff", necessary: "#ffc83c", draining: "#ff5a5a" };
 
 function buildCalendarDays(year, month) {
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDay    = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrev = new Date(year, month, 0).getDate();
-
+  const daysInPrev  = new Date(year, month, 0).getDate();
   const cells = [];
-
-  for (let i = firstDay - 1; i >= 0; i--) {
-    cells.push({ day: daysInPrev - i, current: false });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, current: true });
-  }
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, current: false });
+  for (let d = 1; d <= daysInMonth; d++)  cells.push({ day: d, current: true  });
   const remaining = 42 - cells.length;
-  for (let d = 1; d <= remaining; d++) {
-    cells.push({ day: d, current: false });
-  }
-
+  for (let d = 1; d <= remaining; d++)    cells.push({ day: d, current: false });
   return cells;
+}
+
+function buildCalWavePath() {
+  const W = 400, H = 20;
+  const steps = 32;
+  const pts = Array.from({ length: steps + 1 }, (_, i) => [
+    (i / steps) * W,
+    H / 2 + Math.sin((i / steps) * Math.PI * 2 * 3) * 5,
+  ]);
+  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const mx = ((pts[i][0] + pts[i + 1][0]) / 2).toFixed(1);
+    d += ` C ${mx} ${pts[i][1].toFixed(1)}, ${mx} ${pts[i+1][1].toFixed(1)}, ${pts[i+1][0].toFixed(1)} ${pts[i+1][1].toFixed(1)}`;
+  }
+  return d;
+}
+
+const CAL_WAVE_PATH = buildCalWavePath();
+
+function CalTideLine() {
+  return (
+    <svg
+      className="cal-tide-line"
+      viewBox="0 0 400 20"
+      preserveAspectRatio="none"
+      width="100%"
+      height="20"
+      aria-hidden="true"
+    >
+      <path
+        d={CAL_WAVE_PATH}
+        fill="none"
+        stroke="rgba(78, 205, 196, 0.13)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
 }
 
 export default function Calendar() {
   const {
-    eventTitle,
-    setEventTitle,
-    eventDate,
-    setEventDate,
-    eventTime,
-    setEventTime,
-    expectedFeeling,
-    setExpectedFeeling,
-    filter,
-    setFilter,
+    eventTitle, setEventTitle,
+    eventDate,  setEventDate,
+    eventTime,  setEventTime,
+    expectedFeeling, setExpectedFeeling,
+    filter, setFilter,
     filteredEvents,
-    upcomingCount,
-    pastCount,
-    handleAddEvent,
-    handleDeleteEvent,
-    handleSetActualFeeling,
-    editingEventId,
-    startEditingEvent,
-    stopEditingEvent,
-    formatDate,
-    formatTime,
-    selectedDay,
-    setSelectedDay,
-    currentMonth,
-    prevMonth,
-    nextMonth,
+    upcomingCount, pastCount,
+    handleAddEvent, handleDeleteEvent, handleSetActualFeeling,
+    editingEventId, startEditingEvent, stopEditingEvent,
+    formatDate, formatTime,
+    selectedDay, setSelectedDay,
+    currentMonth, prevMonth, nextMonth,
     getEventDatesInMonth,
   } = useCalendarContext();
 
-  const FEELINGS = ["energizing", "neutral", "necessary", "draining"];
-  const FEELING_LABELS = { energizing: "Energizing", neutral: "Neutral", necessary: "Necessary", draining: "Draining" };
-  const FEELING_COLORS = { energizing: "#64dc82", neutral: "var(--accent)", necessary: "#ffc83c", draining: "#ff5a5a" };
-
   const { year, month } = currentMonth;
-  const cells = buildCalendarDays(year, month);
+  const cells      = buildCalendarDays(year, month);
   const eventDates = getEventDatesInMonth(year, month);
-  const todayStr = getTodayStr();
+  const todayStr   = getTodayStr();
 
   function handleDayClick(day) {
     const dateStr = toDateStr(year, month + 1, day);
@@ -81,11 +95,15 @@ export default function Calendar() {
 
   return (
     <PageShell>
-      <SectionHeader
-        kicker="Workspace"
-        title="Calendar"
-        subtitle="Organize your schedule in a cleaner space with room to grow into shared planning later."
-      />
+      <motion.header
+        className="cal-hero"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.36, ease: "easeOut" }}
+      >
+        <p className="cal-hero-kicker">{MONTHS[month]} {year}</p>
+        <h1 className="cal-hero-title">A month of tides</h1>
+      </motion.header>
 
       <motion.div
         className="calendar-page-shell"
@@ -109,9 +127,7 @@ export default function Calendar() {
                 ←
               </motion.button>
 
-              <span className="cal-month-label">
-                {MONTHS[month]} {year}
-              </span>
+              <span className="cal-month-label">{MONTHS[month]} {year}</span>
 
               <motion.button
                 className="cal-nav-btn"
@@ -131,15 +147,14 @@ export default function Calendar() {
               ))}
             </div>
 
+            <CalTideLine />
+
             <div className="calendar-grid">
               {cells.map((cell, i) => {
-                const dateStr = cell.current
-                  ? toDateStr(year, month + 1, cell.day)
-                  : null;
-
-                const isToday = dateStr === todayStr;
+                const dateStr    = cell.current ? toDateStr(year, month + 1, cell.day) : null;
+                const isToday    = dateStr === todayStr;
                 const isSelected = dateStr === selectedDay;
-                const isPast = dateStr && dateStr < todayStr && !isToday;
+                const isPast     = dateStr && dateStr < todayStr && !isToday;
                 const eventCount = dateStr ? (eventDates.get(dateStr) || 0) : 0;
 
                 return (
@@ -148,17 +163,17 @@ export default function Calendar() {
                     type="button"
                     className={[
                       "cal-day",
-                      !cell.current ? "cal-day--outside" : "",
-                      cell.current && isToday ? "cal-day--today" : "",
-                      cell.current && isSelected ? "cal-day--selected" : "",
-                      cell.current && isPast ? "cal-day--past" : "",
-                    ].join(" ").trim()}
+                      !cell.current                              ? "cal-day--outside"  : "",
+                      cell.current && isToday                   ? "cal-day--today"    : "",
+                      cell.current && isSelected && !isToday    ? "cal-day--selected" : "",
+                      cell.current && isPast                    ? "cal-day--past"     : "",
+                    ].filter(Boolean).join(" ")}
                     onClick={() => cell.current && handleDayClick(cell.day)}
                     whileHover={cell.current ? { scale: 1.08 } : {}}
                     whileTap={cell.current ? { scale: 0.95 } : {}}
                     transition={{ duration: 0.15 }}
                   >
-                    <span>{cell.day}</span>
+                    <span className="cal-day-num">{cell.day}</span>
                     {eventCount > 0 && (
                       <div className="cal-event-indicators">
                         {Array.from({ length: Math.min(eventCount, 3) }).map((_, idx) => (
@@ -208,14 +223,15 @@ export default function Calendar() {
                     style={{ flex: 1 }}
                   />
                 </div>
+
                 <div className="feeling-picker">
                   {FEELINGS.map((f) => (
                     <button
                       key={f}
                       type="button"
-                      className={`feeling-btn feeling-btn--${f}${expectedFeeling === f ? " active" : ""}`}
+                      className={`feeling-btn${expectedFeeling === f ? " active" : ""}`}
+                      style={{ "--feeling-color": FEELING_COLORS[f] }}
                       onClick={() => setExpectedFeeling(expectedFeeling === f ? null : f)}
-                      style={expectedFeeling === f ? { borderColor: FEELING_COLORS[f], color: FEELING_COLORS[f] } : {}}
                     >
                       {FEELING_LABELS[f]}
                     </button>
@@ -284,9 +300,12 @@ export default function Calendar() {
               )}
 
               {filteredEvents.length === 0 ? (
-                <p className="calendar-page-empty">
-                  {selectedDay ? "No events on this day." : "No events in this view."}
-                </p>
+                <div className="cal-empty">
+                  <p className="cal-empty-headline">Still waters.</p>
+                  <p className="cal-empty-sub">
+                    {selectedDay ? "No events on this day." : "No events in this view."}
+                  </p>
+                </div>
               ) : (
                 <ul className="calendar-list">
                   <AnimatePresence>
