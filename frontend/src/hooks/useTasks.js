@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useToastEmitter } from "../components/Toast";
 
 const GUEST_KEY = "guest_tasks";
-const guestLoad = () => { try { return JSON.parse(localStorage.getItem(GUEST_KEY) || "[]"); } catch { return []; } };
+const sanitizeId = (t) => ({ ...t, _id: typeof t._id === "number" ? `guest_${t._id}` : (t._id ?? `guest_${crypto.randomUUID()}`) });
+const guestLoad = () => { try { return (JSON.parse(localStorage.getItem(GUEST_KEY) || "[]")).map(sanitizeId); } catch { return []; } };
 const guestSave = (t) => localStorage.setItem(GUEST_KEY, JSON.stringify(t));
 
 export default function useTasks() {
@@ -52,7 +53,9 @@ export default function useTasks() {
       if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
       const res = await client.get("/tasks", { params });
       setTasks(res.data.data);
-      setPagination(res.data.pagination);
+      // Backend returns `pages`, frontend normalizes to `totalPages`
+      const p = res.data.pagination || {};
+      setPagination({ ...p, totalPages: p.totalPages ?? p.pages ?? 1 });
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to load tasks.";
       setError(msg);
@@ -60,7 +63,7 @@ export default function useTasks() {
     } finally {
       setLoading(false);
     }
-  }, [filters, filter, isAuthenticated, debouncedSearch]);
+  }, [filters, filter, isAuthenticated, debouncedSearch, showToast]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -76,7 +79,7 @@ export default function useTasks() {
 
     if (!isAuthenticated) {
       const t = {
-        _id: `guest_${Date.now()}`,
+        _id: `guest_${crypto.randomUUID()}`,
         title: trimmed,
         completed: false,
         energyLevel: newTaskEnergy,
@@ -113,7 +116,7 @@ export default function useTasks() {
     if (!isAuthenticated) { guestSave(updated); return; }
     try {
       await client.patch(`/tasks/${id}`, { completed: !task.completed });
-    } catch (err) {
+    } catch {
       setTasks(tasks);
       showToast("Failed to update task.", "warn");
     }
@@ -153,7 +156,7 @@ export default function useTasks() {
     if (!isAuthenticated) { guestSave(updated); return; }
     try {
       await client.delete(`/tasks/${id}`);
-    } catch (err) {
+    } catch {
       showToast("Failed to delete task.", "warn");
       fetchTasks();
     }
@@ -166,9 +169,25 @@ export default function useTasks() {
     if (!isAuthenticated) { guestSave(updated); return; }
     try {
       await Promise.all(completed.map((t) => client.delete(`/tasks/${t._id}`)));
-    } catch (err) {
+    } catch {
       showToast("Failed to clear completed tasks.", "warn");
       fetchTasks();
+    }
+  }
+
+  // Programmatic task creation (calendar, etc.) — bypasses form state
+  async function addTaskWithDate(title, dueDate) {
+    if (!isAuthenticated) return null;
+    const trimmed = title?.trim();
+    if (!trimmed) return null;
+    try {
+      const res = await client.post("/tasks", { title: trimmed, dueDate });
+      const task = res.data.data ?? res.data;
+      setTasks((prev) => [task, ...prev]);
+      return task;
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to add action.", "warn");
+      return null;
     }
   }
 
@@ -206,6 +225,7 @@ export default function useTasks() {
     activeCount,
     completedCount,
     handleAddTask,
+    addTaskWithDate,
     handleToggleTask,
     handleRateTask,
     handleEditTask,

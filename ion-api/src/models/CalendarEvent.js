@@ -6,6 +6,7 @@ const calendarEventSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 200 },
     date: { type: String, required: true },
     time: { type: String, default: "" },
+    endTime: { type: String, default: "" },
     expectedFeeling: { type: String, default: null },
     actualFeeling: { type: String, default: null },
     clientId: { type: String, default: null },

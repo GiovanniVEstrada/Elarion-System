@@ -11,8 +11,8 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-brand">
-        <span className="footer-name">Elarion</span>
-        <span className="footer-tagline">Track. Reflect. Evolve.</span>
+        <span className="footer-name">Luren</span>
+        <span className="footer-tagline">by Elarion · Track. Reflect. Evolve.</span>
       </div>
       <img src={logo} alt="" className="footer-stamp" />
       <p className="footer-stats">

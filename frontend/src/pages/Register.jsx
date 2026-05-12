@@ -30,13 +30,14 @@ export default function Register() {
   return (
     <div className="auth-shell">
       <motion.div
-        className="auth-card"
+        className="tide-panel auth-card"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38, ease: "easeOut" }}
       >
         <div className="auth-header">
-          <h1 className="auth-title">Elarion</h1>
+          <p className="auth-kicker">by Elarion</p>
+          <h1 className="auth-title">Luren</h1>
           <p className="auth-subtitle">Create your space</p>
         </div>
 
@@ -45,11 +46,13 @@ export default function Register() {
             <label className="auth-label" htmlFor="name">Name</label>
             <input
               id="name"
+              name="name"
               className="auth-input"
               type="text"
               placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
               required
               autoFocus
             />
@@ -59,11 +62,13 @@ export default function Register() {
             <label className="auth-label" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               className="auth-input"
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -72,11 +77,13 @@ export default function Register() {
             <label className="auth-label" htmlFor="password">Password</label>
             <input
               id="password"
+              name="password"
               className="auth-input"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               required
             />
           </div>

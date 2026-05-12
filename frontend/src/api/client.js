@@ -19,14 +19,15 @@ client.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 401) {
-      localStorage.removeItem("token");
-      // Store the page they were on so we can redirect back after login
       const attempted = window.location.pathname;
-      if (attempted !== "/login" && attempted !== "/register") {
+      const onAuthPage = attempted === "/login" || attempted === "/register";
+      // Only redirect + toast when a protected request expires, not when login itself fails
+      if (!onAuthPage) {
+        localStorage.removeItem("token");
         sessionStorage.setItem("redirectAfterLogin", attempted);
+        window.dispatchEvent(new CustomEvent("auth:expired"));
+        window.location.href = "/login";
       }
-      window.dispatchEvent(new CustomEvent("auth:expired"));
-      window.location.href = "/login";
     }
 
     if (status === 429) {

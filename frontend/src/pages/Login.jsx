@@ -29,13 +29,14 @@ export default function Login() {
   return (
     <div className="auth-shell">
       <motion.div
-        className="auth-card"
+        className="tide-panel auth-card"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38, ease: "easeOut" }}
       >
         <div className="auth-header">
-          <h1 className="auth-title">Elarion</h1>
+          <p className="auth-kicker">by Elarion</p>
+          <h1 className="auth-title">Luren</h1>
           <p className="auth-subtitle">Sign in to your space</p>
         </div>
 
@@ -44,11 +45,13 @@ export default function Login() {
             <label className="auth-label" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               className="auth-input"
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
               autoFocus
             />
@@ -58,11 +61,13 @@ export default function Login() {
             <label className="auth-label" htmlFor="password">Password</label>
             <input
               id="password"
+              name="password"
               className="auth-input"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
           </div>

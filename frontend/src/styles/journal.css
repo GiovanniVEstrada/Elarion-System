@@ -39,20 +39,19 @@
 .journal-sidebar,
 .journal-editor-card,
 .journal-preview-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
-  border: 1px solid var(--border);
+  /* glass from tide-panel class */
   border-radius: 24px;
 }
 
 .journal-sidebar {
+  grid-column: 1;
+  grid-row: 1;
   height: fit-content;
   padding: 18px;
 }
 
 .journal-editor-wrap {
+  grid-column: 2;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
@@ -449,12 +448,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
+  /* glass and border-radius from glass-card class */
 }
 
 .reflect-log-entry.active .reflect-log-card {
@@ -842,28 +836,13 @@
   .journal-sidebar {
     max-height: none;
     overflow: visible;
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    padding: 18px;
   }
 
   .journal-note-list {
     max-height: none;
     overflow: visible;
     gap: 16px;
-  }
-
-  .journal-folders,
-  .journal-search-input {
-    display: none;
-  }
-
-  .journal-editor-card {
-    order: 2;
-    margin-top: 6px;
   }
 
   .journal-preview-card {

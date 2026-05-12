@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { AuthProvider } from "./context/AuthContext";
 import { TasksProvider } from "./context/TasksContext";
@@ -10,23 +10,20 @@ import { MoodsProvider } from "./context/MoodsContext";
 import { ReflectionsProvider } from "./context/ReflectionsContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import Navbar from "./components/layout/Navbar";
-import BottomNav from "./components/layout/BottomNav";
 import Footer from "./components/layout/Footer";
 import OfflineBanner from "./components/layout/OfflineBanner";
 import ToastContainer from "./components/Toast";
 
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Tasks     = lazy(() => import("./pages/Tasks"));
-const Journal   = lazy(() => import("./pages/Journal"));
-const Calendar  = lazy(() => import("./pages/Calendar"));
-const Habits    = lazy(() => import("./pages/Habits"));
-const Moods     = lazy(() => import("./pages/Moods"));
-const Reflect   = lazy(() => import("./pages/Reflect"));
-const Login     = lazy(() => import("./pages/Login"));
-const Register  = lazy(() => import("./pages/Register"));
-const Settings  = lazy(() => import("./pages/Settings"));
-const NotFound    = lazy(() => import("./pages/NotFound"));
-const Onboarding  = lazy(() => import("./pages/Onboarding"));
+const Dashboard  = lazy(() => import("./pages/Dashboard"));
+const Habits     = lazy(() => import("./pages/Habits"));
+const Journal    = lazy(() => import("./pages/Journal"));
+const Calendar   = lazy(() => import("./pages/Calendar"));
+const Reflect    = lazy(() => import("./pages/Reflect"));
+const Login      = lazy(() => import("./pages/Login"));
+const Register   = lazy(() => import("./pages/Register"));
+const Settings   = lazy(() => import("./pages/Settings"));
+const NotFound   = lazy(() => import("./pages/NotFound"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -43,11 +40,11 @@ function AnimatedRoutes() {
         >
           <Routes location={location}>
             <Route path="/"         element={<Dashboard />} />
-            <Route path="/tasks"    element={<Tasks />} />
+            <Route path="/tasks"    element={<Navigate to="/calendar" replace />} />
+            <Route path="/habits"   element={<Habits />} />
             <Route path="/journal"  element={<Journal />} />
             <Route path="/calendar" element={<Calendar />} />
-            <Route path="/habits"   element={<Habits />} />
-            <Route path="/moods"    element={<Moods />} />
+            <Route path="/moods"    element={<Navigate to="/reflect" replace />} />
             <Route path="/reflect"  element={<Reflect />} />
             <Route path="/settings"    element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
@@ -88,7 +85,6 @@ function AppShell() {
                   <div className="bg-orb bg-orb-3" />
                   <OfflineBanner />
                   <Navbar />
-                  <BottomNav />
                   <AnimatedRoutes />
                   <Footer />
                   <ToastContainer />

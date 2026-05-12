@@ -128,6 +128,41 @@ export default function useCalendar() {
     } catch { /* silent */ }
   }
 
+  async function addEventDirect({ title, date, time = "", endTime = "", feeling = null }) {
+    if (!title?.trim() || !date) return null;
+    try {
+      const res = await client.post("/calendar", {
+        title: title.trim(),
+        date,
+        time,
+        endTime,
+        expectedFeeling: feeling,
+      });
+      const event = res.data.data;
+      setEvents((prev) => sortEvents([...prev, event]));
+      return event;
+    } catch {
+      return null;
+    }
+  }
+
+  async function editEventDirect(id, { title, date, time = "", endTime = "", feeling = null }) {
+    if (!title?.trim() || !date) return null;
+    try {
+      const res = await client.patch(`/calendar/${id}`, {
+        title: title.trim(),
+        date,
+        time,
+        endTime,
+        expectedFeeling: feeling,
+      });
+      setEvents((prev) => sortEvents(prev.map((ev) => (ev._id === id ? res.data.data : ev))));
+      return res.data.data;
+    } catch {
+      return null;
+    }
+  }
+
   async function handleSetActualFeeling(id, feeling) {
     try {
       const res = await client.patch(`/calendar/${id}`, { actualFeeling: feeling });
@@ -159,8 +194,11 @@ export default function useCalendar() {
     setSelectedDay(null);
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   const filteredEvents = useMemo(() => {
     let base = events;
@@ -172,7 +210,7 @@ export default function useCalendar() {
       base = base.filter((e) => new Date(e.date + "T00:00:00") < today);
     }
     return base;
-  }, [events, filter, selectedDay]);
+  }, [events, filter, selectedDay, today]);
 
   const upcomingCount = events.filter(
     (e) => new Date(e.date + "T00:00:00") >= today
@@ -210,6 +248,8 @@ export default function useCalendar() {
     upcomingCount,
     pastCount,
     handleAddEvent,
+    addEventDirect,
+    editEventDirect,
     handleDeleteEvent,
     handleSetActualFeeling,
     editingEventId,

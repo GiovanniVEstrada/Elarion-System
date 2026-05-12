@@ -13,7 +13,9 @@
   "license": "ISC",
   "type": "commonjs",
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testTimeout": 15000,
+    "setupFiles": ["./src/tests/setup.js"]
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -10,9 +10,16 @@ import { useAuth } from "../context/AuthContext";
 const DAY_ABBRS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const CELL_W = 46;
 const CELL_GAP = 6;
-const CELL_STEP = CELL_W + CELL_GAP;      // 52
-const WAVE_W = 7 * CELL_W + 6 * CELL_GAP; // 358
+const CELL_STEP = CELL_W + CELL_GAP;
+const WAVE_W = 7 * CELL_W + 6 * CELL_GAP;
 const WAVE_H = 34;
+
+// Dot color logic — matches Calendar.jsx palette
+const DOT_BOTH  = "#ffffff";       // both events + tasks
+const DOT_EVENT = "#4ecdc4";       // teal — event
+const DOT_TASK  = "#ffc83c";       // amber — action
+const DOT_EMPTY = "rgba(78, 205, 196, 0.2)";
+const DOT_FUTURE = "rgba(78, 205, 196, 0.4)";
 
 function toLocalDateStr(d) {
   const pad = (x) => String(x).padStart(2, "0");
@@ -43,7 +50,7 @@ function buildWavePath(xs, ys) {
   return d;
 }
 
-function TideRibbon() {
+function TideRibbon({ events, tasks }) {
   const todayStr = getTodayStr();
 
   const todayStart = useMemo(() => {
@@ -59,6 +66,23 @@ function TideRibbon() {
       return d;
     }), [todayStart]);
 
+  // Build per-date sets for quick lookup
+  const eventDateSet = useMemo(() => {
+    const s = new Set();
+    events.forEach((e) => s.add(e.date));
+    return s;
+  }, [events]);
+
+  const taskDateSet = useMemo(() => {
+    const s = new Set();
+    tasks.forEach((t) => {
+      if (t.dueDate && !t.completed) {
+        s.add(new Date(t.dueDate).toISOString().slice(0, 10));
+      }
+    });
+    return s;
+  }, [tasks]);
+
   const xs = days.map((_, i) => i * CELL_STEP + CELL_W / 2);
   const ys = days.map((_, i) => WAVE_H / 2 + Math.sin(i * Math.PI / 3) * (WAVE_H * 0.32));
   const pathD = buildWavePath(xs, ys);
@@ -69,7 +93,7 @@ function TideRibbon() {
         {days.map((d) => {
           const dateStr = toLocalDateStr(d);
           const isToday = dateStr === todayStr;
-          const isPast = d < todayStart;
+          const isPast  = d < todayStart;
           return (
             <div
               key={dateStr}
@@ -103,7 +127,6 @@ function TideRibbon() {
           </filter>
         </defs>
 
-        {/* Wave line */}
         <path
           d={pathD}
           fill="none"
@@ -113,24 +136,35 @@ function TideRibbon() {
           strokeLinejoin="round"
         />
 
-        {/* Nodes */}
         {days.map((d, i) => {
-          const dateStr = toLocalDateStr(d);
-          const isToday = dateStr === todayStr;
-          const isPast = d < todayStart;
+          const dateStr  = toLocalDateStr(d);
+          const isToday  = dateStr === todayStr;
+          const isPast   = d < todayStart;
+          const hasEvent = eventDateSet.has(dateStr);
+          const hasTask  = taskDateSet.has(dateStr);
+
+          let fill;
+          if (isToday) {
+            fill = "#4ecdc4";
+          } else if (hasEvent && hasTask) {
+            fill = DOT_BOTH;
+          } else if (hasEvent) {
+            fill = DOT_EVENT;
+          } else if (hasTask) {
+            fill = DOT_TASK;
+          } else if (isPast) {
+            fill = DOT_EMPTY;
+          } else {
+            fill = DOT_FUTURE;
+          }
+
           return (
             <circle
               key={dateStr}
               cx={xs[i]}
               cy={ys[i]}
               r={isToday ? 5 : 3.5}
-              fill={
-                isToday
-                  ? "#4ecdc4"
-                  : isPast
-                  ? "rgba(78, 205, 196, 0.2)"
-                  : "rgba(78, 205, 196, 0.4)"
-              }
+              fill={fill}
               filter={isToday ? "url(#tide-node-glow)" : undefined}
             />
           );
@@ -152,7 +186,7 @@ function AgendaCard({ item, active, soon }) {
     <div className={[
       "agenda-card",
       active && "agenda-card--active",
-      soon && "agenda-card--soon",
+      soon   && "agenda-card--soon",
     ].filter(Boolean).join(" ")}>
       <span
         className="agenda-type-dot"
@@ -216,8 +250,8 @@ export default function Dashboard() {
   const hasAnything = nowItems.length > 0 || todayItems.length > 0 || soonItems.length > 0;
 
   return (
-    <div className="home-page">
-      <TideRibbon />
+    <div className="home-page app-mobile-frame">
+      <TideRibbon events={events} tasks={tasks} />
 
       <motion.header
         className="home-hero"

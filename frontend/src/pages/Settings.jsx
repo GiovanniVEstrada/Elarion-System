@@ -98,18 +98,18 @@ export default function Settings() {
   return (
     <PageShell>
       <motion.header
-        className="settings-hero"
+        className="settings-hero tide-hero"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.36, ease: "easeOut" }}
       >
-        <p className="settings-hero-kicker">Settings</p>
-        <h1 className="settings-hero-title">Your harbor</h1>
+        <p className="settings-hero-kicker tide-hero-kicker">Settings</p>
+        <h1 className="settings-hero-title tide-hero-title">Your harbor</h1>
       </motion.header>
 
       <div className="settings-layout">
         <motion.section
-          className="settings-card settings-card--account"
+          className="tide-panel settings-card settings-card--account"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.35 }}
@@ -191,30 +191,10 @@ export default function Settings() {
 
         <div className="settings-side-stack">
           <motion.section
-            className="settings-card"
+            className="tide-panel settings-card"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.35 }}
-          >
-            <div className="settings-card-heading">
-              <p>Appearance</p>
-              <h2>Night glass</h2>
-            </div>
-            <div className="settings-swatches" aria-label="Theme colors">
-              <span style={{ "--swatch": "var(--bg-navy)" }} />
-              <span style={{ "--swatch": "var(--bg-indigo)" }} />
-              <span style={{ "--swatch": "var(--accent-teal)" }} />
-            </div>
-            <p className="settings-desc">
-              Deep navy surfaces, soft glass, and teal as the primary action state.
-            </p>
-          </motion.section>
-
-          <motion.section
-            className="settings-card"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.35 }}
           >
             <div className="settings-card-heading">
               <p>Data</p>
@@ -246,10 +226,10 @@ export default function Settings() {
           </motion.section>
 
           <motion.section
-            className="settings-card"
+            className="tide-panel settings-card"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.35 }}
+            transition={{ delay: 0.15, duration: 0.35 }}
           >
             <div className="settings-card-heading">
               <p>Focus</p>
@@ -271,10 +251,10 @@ export default function Settings() {
         </div>
 
         <motion.section
-          className="settings-card settings-card--danger"
+          className="tide-panel settings-card settings-card--danger"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.35 }}
+          transition={{ delay: 0.2, duration: 0.35 }}
         >
           <div className="settings-card-heading">
             <p>Danger zone</p>

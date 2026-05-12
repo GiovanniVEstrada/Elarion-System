@@ -150,145 +150,6 @@
 
 @media (max-width: 768px) {
   .navbar { display: none; }
-  .app-shell { padding-bottom: 80px; }
-}
-
-/* ── Bottom Navigation Bar ── */
-
-.bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  height: 64px;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.07),
-      rgba(255, 255, 255, 0.03)
-    ),
-    rgba(6, 12, 22, 0.92);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  border-top: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 -8px 28px -8px rgba(0, 0, 0, 0.4);
-  justify-content: space-around;
-  align-items: center;
-  overflow: visible;
-}
-
-
-@media (max-width: 768px) {
-  .bottom-nav { display: flex; }
-}
-
-/* Regular tab links */
-.bottom-nav-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 8px 10px 4px;
-  color: var(--text-soft);
-  font-size: 0.58rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 12px;
-  min-width: 52px;
-  min-height: 44px;
-  justify-content: flex-end;
-  transition: color 0.2s ease, text-shadow 0.2s ease;
-}
-
-.bottom-nav-link.active {
-  color: var(--accent);
-  text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.55);
-}
-
-.bottom-nav-icon {
-  font-size: 1.18rem;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-
-.bottom-nav-link.active .bottom-nav-icon {
-  transform: translateY(-2px);
-}
-
-/* Center slot — holds the elevated home button */
-.bottom-nav-center-slot {
-  position: relative;
-  width: 64px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  flex-shrink: 0;
-}
-
-/* Home / Dashboard center button */
-.bottom-nav-home {
-  position: absolute;
-  top: -36px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: var(--text-h);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(var(--accent-rgb), 0.28),
-      rgba(126, 240, 211, 0.20)
-    ),
-    rgba(8, 20, 34, 0.85);
-  border: 1.5px solid rgba(var(--accent-rgb), 0.42);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-  box-shadow:
-    0 0 0 4px rgba(6, 12, 22, 0.75),
-    0 0 18px rgba(var(--accent-rgb), 0.30),
-    0 0 36px rgba(var(--accent-rgb), 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  transition:
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.22s ease;
-}
-
-.bottom-nav-home:hover {
-  box-shadow:
-    0 0 0 4px rgba(6, 12, 22, 0.75),
-    0 0 26px rgba(var(--accent-rgb), 0.45),
-    0 0 52px rgba(var(--accent-rgb), 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  border-color: rgba(var(--accent-rgb), 0.65);
-  transform: translateX(-50%) translateY(-2px);
-}
-
-.bottom-nav-home.active {
-  border-color: var(--accent);
-  box-shadow:
-    0 0 0 4px rgba(6, 12, 22, 0.75),
-    0 0 24px rgba(var(--accent-rgb), 0.55),
-    0 0 48px rgba(var(--accent-rgb), 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.20);
-}
-
-.bottom-nav-home-icon {
-  font-size: 1.55rem;
-  line-height: 1;
-  color: var(--accent);
-  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.7));
 }
 
 /* ── Page Tab Bar (Tasks/Habits switcher) ── */
@@ -504,7 +365,7 @@
   left: 0;
   z-index: 1300;
   width: min(82vw, 318px);
-  padding: calc(env(safe-area-inset-top, 0px) + 64px) 20px 24px;
+  padding: calc(env(safe-area-inset-top, 0px) + 64px) 20px max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px));
   background:
     linear-gradient(180deg, rgba(8, 38, 55, 0.96), rgba(3, 16, 27, 0.98)),
     #06131f;
@@ -623,10 +484,6 @@
   letter-spacing: 0.04em;
 }
 
-.bottom-nav {
-  display: none !important;
-}
-
 @media (min-width: 769px) {
   .app-top-chrome {
     top: 26px;
@@ -635,9 +492,7 @@
     margin-bottom: 34px;
   }
 
-  .dashboard,
-  .feature-page,
-  .home-page {
+  .app-mobile-frame {
     padding-top: 40px;
   }
 }
@@ -647,24 +502,41 @@
     padding-bottom: 0;
   }
 
-  .dashboard,
-  .feature-page,
-  .home-page {
-    width: min(100%, 430px);
-    min-height: 100vh;
+  .app-mobile-frame {
+    width: 100%;
+    /* dvh accounts for Android Chrome's collapsing address bar */
+    min-height: 100dvh;
     margin: 0 auto;
     padding-top: 24px;
     padding-left: 22px;
     padding-right: 22px;
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+    /* Top is transparent so the top-chrome buttons float on the ambient body gradient.
+       The darker panel fade starts below the navigation area (~22%). */
     background:
-      radial-gradient(circle at 72% 6%, rgba(126, 216, 255, 0.18), transparent 22%),
-      radial-gradient(circle at 24% 86%, rgba(78, 205, 196, 0.16), transparent 26%),
-      linear-gradient(180deg, rgba(13, 38, 56, 0.9), rgba(4, 19, 31, 0.98));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      radial-gradient(circle at 22% 88%, rgba(78, 205, 196, 0.14), transparent 28%),
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 22%,
+        rgba(5, 18, 30, 0.52) 40%,
+        rgba(4, 13, 24, 0.94) 100%
+      );
   }
 
   .footer {
     display: none;
+  }
+}
+
+/* ── Narrow Android phones (360px and below) ── */
+
+@media (max-width: 380px) {
+  .app-mobile-frame {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .app-top-chrome {
+    width: calc(100% - 32px);
   }
 }

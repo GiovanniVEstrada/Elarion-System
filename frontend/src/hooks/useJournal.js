@@ -11,8 +11,10 @@ function normalizeEntry(e) {
 
 const GUEST_ENTRIES_KEY = "guest_journal_entries";
 const GUEST_FOLDERS_KEY = "guest_journal_folders";
-const guestLoadEntries  = () => { try { return JSON.parse(localStorage.getItem(GUEST_ENTRIES_KEY) || "[]"); } catch { return []; } };
-const guestLoadFolders  = () => { try { return JSON.parse(localStorage.getItem(GUEST_FOLDERS_KEY) || "[]"); } catch { return []; } };
+const sanitizeEntryId = (e) => ({ ...e, _id: typeof e._id === "number" ? `guest_${e._id}` : (e._id ?? `guest_${crypto.randomUUID()}`) });
+const sanitizeFolderId = (f) => ({ ...f, id: typeof f.id === "number" ? `folder_${f.id}` : (f.id ?? crypto.randomUUID()) });
+const guestLoadEntries  = () => { try { return (JSON.parse(localStorage.getItem(GUEST_ENTRIES_KEY) || "[]")).map(sanitizeEntryId); } catch { return []; } };
+const guestLoadFolders  = () => { try { return (JSON.parse(localStorage.getItem(GUEST_FOLDERS_KEY) || "[]")).map(sanitizeFolderId); } catch { return []; } };
 const guestSaveEntries  = (e) => localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(e));
 const guestSaveFolders  = (f) => localStorage.setItem(GUEST_FOLDERS_KEY, JSON.stringify(f));
 
@@ -163,7 +165,7 @@ export default function useJournal() {
         stopEditing();
       } else {
         const created = {
-          _id: `guest_${Date.now()}`,
+          _id: `guest_${crypto.randomUUID()}`,
           ...payload,
           mood,
           createdAt: new Date().toISOString(),

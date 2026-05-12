@@ -25,7 +25,7 @@ export default function OfflineBanner() {
           exit={{ y: -40, opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          You're offline — showing cached data
+          You're offline - showing cached data
         </motion.div>
       )}
     </AnimatePresence>

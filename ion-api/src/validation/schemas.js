@@ -12,6 +12,7 @@ const loginSchema = Joi.object({
 });
 
 const MOOD_VALUES = ["great", "good", "neutral", "bad", "awful"];
+const FEELING_VALUES = ["energizing", "neutral", "necessary", "draining"];
 
 const taskSchema = Joi.object({
   title: Joi.string().min(1).max(200).required(),
@@ -58,6 +59,54 @@ const moodSchema = Joi.object({
   date: Joi.date().optional().allow(null),
 });
 
+const moodUpdateSchema = Joi.object({
+  mood: Joi.string().valid(...MOOD_VALUES).optional(),
+  note: Joi.string().max(500).optional().allow(""),
+  date: Joi.date().optional().allow(null),
+});
+
+const journalEntrySchema = Joi.object({
+  title: Joi.string().min(1).max(200).required(),
+  content: Joi.string().max(10000).optional().allow(""),
+  mood: Joi.string().valid(...MOOD_VALUES).optional(),
+  tags: Joi.array().items(Joi.string().trim().max(50)).max(20).optional(),
+  clarity: Joi.number().min(1).max(5).optional().allow(null),
+  mentalState: Joi.string().max(100).optional().allow("", null),
+  folder: Joi.string().max(100).optional().allow("", null),
+  sentimentScore: Joi.number().min(1).max(5).optional().allow(null),
+});
+
+const journalEntryUpdateSchema = Joi.object({
+  title: Joi.string().min(1).max(200).optional(),
+  content: Joi.string().max(10000).optional().allow(""),
+  mood: Joi.string().valid(...MOOD_VALUES).optional(),
+  tags: Joi.array().items(Joi.string().trim().max(50)).max(20).optional(),
+  clarity: Joi.number().min(1).max(5).optional().allow(null),
+  mentalState: Joi.string().max(100).optional().allow("", null),
+  folder: Joi.string().max(100).optional().allow("", null),
+  sentimentScore: Joi.number().min(1).max(5).optional().allow(null),
+});
+
+const calendarEventSchema = Joi.object({
+  title: Joi.string().min(1).max(200).required(),
+  date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  time: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().allow(""),
+  endTime: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().allow(""),
+  expectedFeeling: Joi.string().valid(...FEELING_VALUES).optional().allow(null),
+  actualFeeling: Joi.string().valid(...FEELING_VALUES).optional().allow(null),
+  clientId: Joi.string().max(100).optional().allow(null, ""),
+});
+
+const calendarEventUpdateSchema = Joi.object({
+  title: Joi.string().min(1).max(200).optional(),
+  date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  time: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().allow(""),
+  endTime: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().allow(""),
+  expectedFeeling: Joi.string().valid(...FEELING_VALUES).optional().allow(null),
+  actualFeeling: Joi.string().valid(...FEELING_VALUES).optional().allow(null),
+  clientId: Joi.string().max(100).optional().allow(null, ""),
+});
+
 const updateMeSchema = Joi.object({
   name:               Joi.string().min(2).max(50).optional(),
   onboardingComplete: Joi.boolean().optional(),
@@ -93,6 +142,11 @@ module.exports = {
   habitSchema,
   habitUpdateSchema,
   moodSchema,
+  moodUpdateSchema,
+  journalEntrySchema,
+  journalEntryUpdateSchema,
+  calendarEventSchema,
+  calendarEventUpdateSchema,
   updateMeSchema,
   changePasswordSchema,
   reflectionSchema,

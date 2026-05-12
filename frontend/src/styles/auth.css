@@ -1,7 +1,7 @@
 /* ── Auth Shell ── */
 
 .auth-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,12 +18,7 @@
   width: 100%;
   max-width: 400px;
   padding: 36px 32px;
-  border-radius: 24px;
-  border: 1px solid rgba(173, 216, 230, 0.16);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
+  /* glass from tide-panel class */
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -33,20 +28,35 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+.auth-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 800;
+  margin: 0 0 6px;
 }
 
 .auth-title {
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2.4rem, 8vw, 3.2rem);
+  line-height: 0.95;
   color: var(--text-h);
-  letter-spacing: 0.02em;
+  margin: 0;
+  text-shadow: 0 0 28px rgba(78, 205, 196, 0.22);
 }
 
 .auth-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-soft);
-  opacity: 0.7;
+  opacity: 0.65;
+  margin: 10px 0 0;
+  letter-spacing: 0.02em;
 }
 
 /* ── Form ── */
@@ -148,64 +158,11 @@
 @media (max-width: 480px) {
   .auth-card {
     padding: 28px 20px;
+    border-radius: 20px;
   }
 }
 
 /* ── Guest Banner ── */
-
-.guest-banner {
-  position: sticky;
-  top: 0;
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 20px;
-  background: rgba(181, 140, 255, 0.1);
-  border-bottom: 1px solid rgba(181, 140, 255, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  font-size: 0.85rem;
-  color: var(--text-soft);
-  flex-wrap: wrap;
-}
-
-.guest-banner-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.guest-banner-btn {
-  padding: 5px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-h);
-  font-size: 0.82rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
-  cursor: pointer;
-  min-height: 32px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.guest-banner-btn--primary {
-  background: rgba(181, 140, 255, 0.18);
-  border-color: rgba(181, 140, 255, 0.3);
-  color: rgba(181, 140, 255, 0.95);
-}
-
-.guest-banner-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.guest-banner-btn--primary:hover {
-  background: rgba(181, 140, 255, 0.26);
-}
 
 /* ── Guest prompt (Habits/Moods pages) ── */
 

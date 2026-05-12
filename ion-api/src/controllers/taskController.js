@@ -32,18 +32,30 @@ const getTasks = asyncHandler(async (req, res) => {
 });
 
 const createTask = asyncHandler(async (req, res) => {
-  const { title, priority, category, dueDate, energyLevel, intent, alignmentScore } =
-    req.body || {};
-
-  const task = await Task.create({
-    user: req.user._id,
+  const {
     title,
+    completed,
     priority,
     category,
     dueDate,
     energyLevel,
     intent,
     alignmentScore,
+    postMood,
+  } =
+    req.body || {};
+
+  const task = await Task.create({
+    user: req.user._id,
+    title,
+    completed,
+    priority,
+    category,
+    dueDate,
+    energyLevel,
+    intent,
+    alignmentScore,
+    postMood,
   });
 
   res.status(201).json({ success: true, data: task });

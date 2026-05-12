@@ -45,7 +45,7 @@ const getJournalEntry = asyncHandler(async (req, res) => {
 });
 
 const createJournalEntry = asyncHandler(async (req, res) => {
-  const { title, content, mood, tags, clarity, mentalState, folder } = req.body || {};
+  const { title, content, mood, tags, clarity, mentalState, folder, sentimentScore } = req.body || {};
 
   const entry = await JournalEntry.create({
     user: req.user._id,
@@ -56,6 +56,7 @@ const createJournalEntry = asyncHandler(async (req, res) => {
     clarity,
     mentalState,
     folder,
+    sentimentScore,
   });
 
   res.status(201).json({ success: true, data: entry });

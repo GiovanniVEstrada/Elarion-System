@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 
 let addToast;
+let _toastSeq = 0;
+const nextId = () => `t-${++_toastSeq}`;
+
+// Module-level stable reference — never changes between renders
+function showToastImpl(msg, type = "default") {
+  addToast?.({ msg, type, id: nextId() });
+}
 
 export function useToastEmitter() {
-  return { showToast: (msg, type = "default") => addToast?.({ msg, type, id: Date.now() }) };
+  // Return the stable module-level function so hooks that depend on it
+  // don't re-create their useCallback on every render
+  return { showToast: showToastImpl };
 }
 
 export default function ToastContainer() {
@@ -18,10 +27,10 @@ export default function ToastContainer() {
     };
 
     function onExpired() {
-      addToast({ msg: "Session expired — signing you out.", type: "warn", id: Date.now() });
+      showToastImpl("Session expired — signing you out.", "warn");
     }
     function onRateLimit() {
-      addToast({ msg: "Too many requests — try again in a moment.", type: "warn", id: Date.now() });
+      showToastImpl("Too many requests — try again in a moment.", "warn");
     }
 
     window.addEventListener("auth:expired", onExpired);

@@ -13,12 +13,8 @@
 .onboarding-card {
   width: 100%;
   max-width: 480px;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--border);
+  /* glass from tide-panel class */
   border-radius: 28px;
-  box-shadow: var(--glass-shadow);
   padding: 36px 28px 28px;
   display: flex;
   flex-direction: column;
@@ -43,6 +39,15 @@
   color: var(--accent);
   opacity: 0.85;
   text-align: center;
+}
+
+.onboarding-brand-by {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0.6;
+  vertical-align: middle;
 }
 
 /* Progress dots */

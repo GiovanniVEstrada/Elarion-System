@@ -16,12 +16,7 @@
 
 .calendar-grid-panel {
   padding: 20px;
-  border-radius: 24px;
-  border: 1px solid rgba(173, 216, 230, 0.16);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px -18px rgba(0, 0, 0, 0.38);
+  /* glass from tide-panel class */
 }
 
 .calendar-side-panel {
@@ -104,6 +99,9 @@
   color: var(--text);
   font-size: 0.9rem;
   cursor: pointer;
+  /* Prevent grid blowout: cells must be allowed to shrink below content size */
+  min-width: 0;
+  overflow: hidden;
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -158,6 +156,8 @@
   gap: 3px;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .cal-event-dot {
@@ -178,10 +178,12 @@
 }
 
 .cal-event-count {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--text-soft);
   opacity: 0.8;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Hero Header ── */
@@ -217,22 +219,12 @@
 
 .cal-form-glass {
   padding: 20px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
+  /* glass from tide-panel class */
 }
 
 .cal-list-glass {
   padding: 16px 20px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
+  /* glass from tide-panel class */
 }
 
 /* ── Side Panel — Titles & Controls ── */
@@ -427,9 +419,776 @@
   line-height: 1.6;
 }
 
+/* ── Calendar legend ── */
+
+.cal-legend {
+  display: flex;
+  gap: 14px;
+  padding: 10px 2px 2px;
+}
+
+.cal-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-muted, #8892a4);
+  letter-spacing: 0.05em;
+}
+
+/* ── Day type modal ── */
+
+.day-type-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(4, 12, 22, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.day-type-modal {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  border-radius: 24px;
+  border: 1px solid rgba(173, 216, 230, 0.14);
+  background: var(--glass-bg, rgba(10, 24, 40, 0.92));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.7);
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.day-type-modal-date {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 700;
+  margin: 0;
+}
+
+.day-type-modal-title {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.day-type-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-type-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.day-type-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.day-type-btn--event {
+  border-color: rgba(78, 205, 196, 0.22);
+}
+
+.day-type-btn--event:hover {
+  border-color: rgba(78, 205, 196, 0.4);
+  background: rgba(78, 205, 196, 0.06);
+}
+
+.day-type-btn--action {
+  border-color: rgba(255, 200, 60, 0.22);
+}
+
+.day-type-btn-icon {
+  font-size: 1.2rem;
+  color: var(--accent-teal, #4ecdc4);
+  flex-shrink: 0;
+}
+
+.day-type-btn-label {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 0.92rem;
+}
+
+.day-type-btn-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-type-btn-sub {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+/* step 2 — form inside the modal */
+.day-type-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-type-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.day-type-back-btn {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s, border-color 0.18s;
+  flex-shrink: 0;
+}
+
+.day-type-back-btn:hover {
+  color: var(--text-h);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Scheduled actions in the side list ── */
+
+.cal-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 3px solid rgba(255, 200, 60, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 8px;
+  list-style: none;
+}
+
+.cal-action-item:last-child {
+  margin-bottom: 0;
+}
+
+.cal-action-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+  box-shadow: 0 0 6px rgba(255, 200, 60, 0.4);
+}
+
+.cal-action-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* ── Sub-filter row (upcoming/past under events tab) ── */
+
+.calendar-filter-group--sub {
+  margin-top: -6px;
+}
+
+.day-type-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ── View toggle (Month | Day) ── */
+
+.cal-hero-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cal-view-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.cal-view-btn {
+  padding: 6px 16px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  letter-spacing: 0.03em;
+}
+
+.cal-view-btn.active {
+  background: rgba(78, 205, 196, 0.16);
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 600;
+}
+
+/* "Day view" button on the selected-day controls row */
+
+.cal-day-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-zoom-day-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  background: rgba(78, 205, 196, 0.08);
+  color: var(--accent-teal, #4ecdc4);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.cal-zoom-day-btn:hover {
+  background: rgba(78, 205, 196, 0.14);
+  border-color: rgba(78, 205, 196, 0.5);
+}
+
+/* ── Day View shell ── */
+
+.day-view-shell {
+  max-width: 760px;
+}
+
+.day-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.day-view-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+}
+
+.day-view-date-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  min-width: 200px;
+  text-align: center;
+}
+
+.cal-add-day-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 205, 196, 0.35);
+  background: rgba(78, 205, 196, 0.1);
+  color: var(--accent-teal, #4ecdc4);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.18s, border-color 0.18s;
+  white-space: nowrap;
+}
+
+.cal-add-day-btn:hover {
+  background: rgba(78, 205, 196, 0.18);
+  border-color: rgba(78, 205, 196, 0.55);
+}
+
+/* ── Day Timeline ── */
+
+.day-timeline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+  /* glass from tide-panel class */
+}
+
+/* All-day strip */
+
+.day-allday-strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.day-allday-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-top: 4px;
+  min-width: 52px;
+  flex-shrink: 0;
+}
+
+.day-allday-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.day-allday-event {
+  padding: 4px 10px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-teal, #4ecdc4);
+  background: rgba(78, 205, 196, 0.08);
+  font-size: 0.82rem;
+  color: var(--text-h);
+}
+
+.day-allday-action {
+  padding: 4px 10px;
+  border-radius: 8px;
+  border-left: 3px solid rgba(255, 200, 60, 0.6);
+  background: rgba(255, 200, 60, 0.08);
+  font-size: 0.82rem;
+  color: var(--text-h);
+}
+
+/* Hour grid */
+
+.day-timeline {
+  position: relative;
+  width: 100%;
+}
+
+.day-hour-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.day-hour-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+  transform: translateY(-0.4em);
+}
+
+.day-hour-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-top: 0;
+}
+
+/* Current time indicator */
+
+.day-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.day-now-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-teal, #4ecdc4);
+  box-shadow: 0 0 8px rgba(78, 205, 196, 0.7);
+  flex-shrink: 0;
+  margin-right: -4px;
+}
+
+.day-now-line::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(78, 205, 196, 0.45);
+  box-shadow: 0 0 6px rgba(78, 205, 196, 0.25);
+}
+
+/* Timed event blocks */
+
+.day-event-block {
+  position: absolute;
+  left: 58px;
+  right: 0;
+  border-radius: 10px;
+  border-left: 3px solid var(--accent-teal, #4ecdc4);
+  padding: 6px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 2;
+  transition: filter 0.15s;
+}
+
+.day-event-block:hover {
+  filter: brightness(1.12);
+}
+
+.day-event-block-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.day-event-block-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-event-block-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.day-event-block-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.day-event-block:hover .day-event-block-actions {
+  opacity: 1;
+}
+
+/* ── Time range row in modal ── */
+
+.day-type-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-type-time-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.day-type-time-label {
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.day-type-time-sep {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding-top: 18px;
+  flex-shrink: 0;
+}
+
+/* ── Day Agenda Panel (below month grid) ── */
+
+.cal-day-agenda {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(78, 205, 196, 0.18);
+}
+
+.cal-day-agenda-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cal-day-agenda-headleft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cal-day-agenda-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  margin: 0;
+}
+
+.cal-day-agenda-count {
+  font-size: 0.68rem;
+  color: var(--text-muted, #8892a4);
+  margin: 0;
+}
+
+.cal-day-agenda-btns {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.cal-agenda-timeline-btn {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cal-agenda-timeline-btn:hover {
+  color: var(--text-h);
+  border-color: rgba(78, 205, 196, 0.35);
+}
+
+.cal-agenda-close-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.cal-agenda-close-btn:hover {
+  color: var(--text-h);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.cal-day-agenda-empty {
+  padding: 18px 4px 10px;
+  text-align: center;
+}
+
+.cal-day-agenda-empty-text {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--text-muted, #8892a4);
+  opacity: 0.65;
+  margin: 0;
+}
+
+.cal-day-agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cal-agenda-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.cal-agenda-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cal-agenda-row-bar {
+  width: 3px;
+  min-height: 28px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: var(--row-color, rgba(78, 205, 196, 0.6));
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--row-color, rgba(78, 205, 196, 0.25));
+}
+
+.cal-agenda-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+}
+
+.cal-agenda-row-title {
+  font-size: 0.86rem;
+  color: var(--text-h);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.cal-agenda-row-time {
+  font-size: 0.7rem;
+  color: var(--text-muted, #8892a4);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.cal-agenda-row-type {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted, #8892a4);
+  opacity: 0.65;
+  line-height: 1;
+}
+
+.cal-agenda-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.cal-agenda-row:hover .cal-agenda-row-actions {
+  opacity: 1;
+}
+
+.cal-agenda-icon-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.cal-agenda-icon-btn:hover {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  border-color: rgba(var(--accent-rgb), 0.2);
+}
+
+.cal-agenda-icon-btn--danger:hover {
+  color: #ff5a5a;
+  background: rgba(255, 90, 90, 0.08);
+  border-color: rgba(255, 90, 90, 0.2);
+}
+
+/* Side panel — selected day label */
+
+.cal-side-day-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-teal, #4ecdc4);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(78, 205, 196, 0.08);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 768px) {
+  .cal-agenda-row-actions {
+    opacity: 1;
+  }
+
+  .calendar-side-panel {
+    display: none;
+  }
+
   .calendar-layout {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -439,4 +1198,28 @@
     font-size: clamp(2rem, 12vw, 3rem);
   }
 
+  .day-view-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .day-view-nav {
+    order: -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .calendar-grid {
+    gap: 2px;
+  }
+
+  .cal-day {
+    min-height: 44px;
+  }
+
+  .cal-day-num {
+    width: 24px;
+    height: 24px;
+  }
 }

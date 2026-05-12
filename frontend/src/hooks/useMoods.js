@@ -115,7 +115,7 @@ export default function useMoods() {
     if (editingMoodId === id) stopEditingMood();
     try {
       await client.delete(`/moods/${id}`);
-    } catch (err) {
+    } catch {
       showToast("Failed to delete mood entry.", "warn");
       fetchMoods();
     }

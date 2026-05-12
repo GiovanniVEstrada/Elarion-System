@@ -66,8 +66,54 @@ function groupEntriesByDate(entries) {
   }, []);
 }
 
+function SwipeRow({ onDelete, children }) {
+  const [swiped, setSwiped] = useState(false);
+  const touchStartX         = useRef(null);
+
+  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX; }
+  function onTouchEnd(e) {
+    if (touchStartX.current === null) return;
+    const delta = touchStartX.current - e.changedTouches[0].clientX;
+    if (delta > 48)  setSwiped(true);
+    if (delta < -24) setSwiped(false);
+    touchStartX.current = null;
+  }
+
+  return (
+    <div className="log-entry-wrap">
+      <motion.div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        animate={{ x: swiped ? -80 : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {children}
+      </motion.div>
+      <AnimatePresence>
+        {swiped && (
+          <motion.div
+            className="log-entry-actions"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.15 }}
+          >
+            <button
+              className="log-action-btn log-action-btn--delete"
+              type="button"
+              onClick={onDelete}
+              aria-label="Delete entry"
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Journal() {
-  const [showSidebar, setShowSidebar] = useState(true);
   const [expandedIds, setExpandedIds] = useState(() => new Set());
   const editorRef = useRef(null);
   const titleRef = useRef(null);
@@ -117,7 +163,6 @@ export default function Journal() {
   function focusNewEntry() {
     stopEditing();
     setSelectedId(null);
-    setShowSidebar(false);
     window.requestAnimationFrame(() => {
       editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       titleRef.current?.focus();
@@ -136,9 +181,9 @@ export default function Journal() {
 
   if (loading) return (
     <PageShell>
-      <motion.header className="journal-hero">
-        <p className="journal-hero-kicker">Reflection Log</p>
-        <h1 className="journal-hero-title">What you noticed</h1>
+      <motion.header className="journal-hero tide-hero">
+        <p className="journal-hero-kicker tide-hero-kicker">Reflection Log</p>
+        <h1 className="journal-hero-title tide-hero-title">What you noticed</h1>
       </motion.header>
       <SkeletonList count={5} />
     </PageShell>
@@ -156,13 +201,13 @@ export default function Journal() {
   return (
     <PageShell>
       <motion.header
-        className="journal-hero"
+        className="journal-hero tide-hero"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.36, ease: "easeOut" }}
       >
-        <p className="journal-hero-kicker">{entries.length} entries</p>
-        <h1 className="journal-hero-title">What you noticed</h1>
+        <p className="journal-hero-kicker tide-hero-kicker">{entries.length} entries</p>
+        <h1 className="journal-hero-title tide-hero-title">What you noticed</h1>
       </motion.header>
 
       <motion.div
@@ -171,156 +216,8 @@ export default function Journal() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08, duration: 0.38 }}
       >
-        <button
-          type="button"
-          className="journal-sidebar-toggle"
-          onClick={() => setShowSidebar((s) => !s)}
-        >
-          {showSidebar ? "Hide notes" : "Browse notes"}
-        </button>
-
-        <aside className={`journal-sidebar${showSidebar ? "" : " journal-sidebar-hidden"}`}>
-          <div className="journal-folders">
-            <div className="journal-folders-header">
-              <h3>Folders</h3>
-              <button
-                className="journal-folder-add-btn"
-                type="button"
-                onClick={() => setAddingFolder(true)}
-                aria-label="Add folder"
-              >
-                +
-              </button>
-            </div>
-
-            {addingFolder && (
-              <input
-                className="journal-folder-new-input"
-                autoFocus
-                placeholder="Folder name..."
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddFolder();
-                  if (e.key === "Escape") {
-                    setAddingFolder(false);
-                    setNewFolderName("");
-                  }
-                }}
-                onBlur={handleAddFolder}
-              />
-            )}
-
-            <button
-              type="button"
-              className={`journal-folder-item ${activeFolderId === null ? "active" : ""}`}
-              onClick={() => setActiveFolderId(null)}
-            >
-              <span>All Notes</span>
-              <span className="journal-folder-count">{entries.length}</span>
-            </button>
-
-            {folders.map((folder) => {
-              const count = entries.filter((e) => e.folder === folder.id).length;
-              return (
-                <div key={folder.id} className="journal-folder-row">
-                  <button
-                    type="button"
-                    className={`journal-folder-item ${activeFolderId === folder.id ? "active" : ""}`}
-                    onClick={() => setActiveFolderId(folder.id)}
-                  >
-                    <span>{folder.name}</span>
-                    <span className="journal-folder-count">{count}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="journal-folder-delete-btn"
-                    onClick={() => handleDeleteFolder(folder.id)}
-                    aria-label={`Delete ${folder.name}`}
-                  >
-                    x
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <input
-            className="journal-search-input"
-            type="text"
-            placeholder="Search notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-
-          <div className="reflect-log-timeline">
-            <AnimatePresence>
-              {filteredEntries.length === 0 ? (
-                <div className="journal-empty journal-empty--compact">
-                  <p className="journal-empty-headline">
-                    {searchQuery ? "No echo here." : "No pages yet."}
-                  </p>
-                  <p className="journal-empty-sub">
-                    {searchQuery ? "Try a softer search." : "Start a note with the + button."}
-                  </p>
-                </div>
-              ) : (
-                groupedEntries.map((group) => (
-                  <div className="reflect-log-group" key={group.key}>
-                    <div className="reflect-log-date-row">
-                      <span>{group.key}</span>
-                    </div>
-                    {group.entries.map((entry) => {
-                      const state = MOOD_TO_STATE[entry.mood] ?? moodMeta(entry.mood);
-                      const expanded = expandedIds.has(entry._id);
-                      return (
-                        <motion.button
-                          key={entry._id}
-                          type="button"
-                          className={[
-                            "reflect-log-entry",
-                            expanded && "reflect-log-entry--expanded",
-                            selectedId === entry._id || (!selectedId && selectedEntry?._id === entry._id)
-                              ? "active"
-                              : "",
-                          ].filter(Boolean).join(" ")}
-                          onClick={() => toggleEntry(entry._id)}
-                          style={{ "--mood-color": state.color }}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -12, scale: 0.97 }}
-                          transition={{ duration: 0.2 }}
-                          {...hoverAnim}
-                          {...tapAnim}
-                        >
-                          <span className="reflect-log-dot" />
-                          <span className="reflect-log-card">
-                            <span className="reflect-log-topline">
-                              <span>{formatEntryStamp(entry.createdAt)}</span>
-                              <span className="reflect-log-state">{state.label}</span>
-                            </span>
-                            {entry.title && (
-                              <strong className="reflect-log-title">{entry.title}</strong>
-                            )}
-                            {entry.content && (
-                              <span className="reflect-log-body">{entry.content}</span>
-                            )}
-                            {entry.mentalState && (
-                              <span className="reflect-log-mental">{entry.mentalState}</span>
-                            )}
-                          </span>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                ))
-              )}
-            </AnimatePresence>
-          </div>
-        </aside>
-
         <div className="journal-editor-wrap">
-          <section className="journal-editor-card" ref={editorRef}>
+          <section className="tide-panel journal-editor-card" ref={editorRef}>
             <div className="journal-card-heading">
               <p>{editingId ? "Revision" : "New entry"}</p>
               <h2>{editingId ? "Return to the note" : "Write what is true"}</h2>
@@ -329,14 +226,17 @@ export default function Journal() {
             <form className="journal-page-form" onSubmit={handleAddEntry}>
               <input
                 ref={titleRef}
+                name="journal-title"
                 className="journal-title-input"
                 type="text"
                 placeholder="Entry title..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                autoComplete="off"
               />
 
               <textarea
+                name="journal-content"
                 className="journal-textarea journal-page-textarea"
                 placeholder="Let the record be quiet and exact..."
                 value={content}
@@ -435,7 +335,7 @@ export default function Journal() {
             </form>
           </section>
 
-          <section className="journal-preview-card">
+          <section className="tide-panel journal-preview-card">
             <div className="journal-card-heading">
               <p>Selected note</p>
               <h2>Held in view</h2>
@@ -465,6 +365,154 @@ export default function Journal() {
             </AnimatePresence>
           </section>
         </div>
+
+        <aside className="tide-panel journal-sidebar">
+          <div className="journal-folders">
+            <div className="journal-folders-header">
+              <h3>Folders</h3>
+              <button
+                className="journal-folder-add-btn"
+                type="button"
+                onClick={() => setAddingFolder(true)}
+                aria-label="Add folder"
+              >
+                +
+              </button>
+            </div>
+
+            {addingFolder && (
+              <input
+                name="journal-folder-name"
+                className="journal-folder-new-input"
+                autoFocus
+                placeholder="Folder name..."
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                autoComplete="off"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddFolder();
+                  if (e.key === "Escape") {
+                    setAddingFolder(false);
+                    setNewFolderName("");
+                  }
+                }}
+                onBlur={handleAddFolder}
+              />
+            )}
+
+            <button
+              type="button"
+              className={`journal-folder-item ${activeFolderId === null ? "active" : ""}`}
+              onClick={() => setActiveFolderId(null)}
+            >
+              <span>All Notes</span>
+              <span className="journal-folder-count">{entries.length}</span>
+            </button>
+
+            {folders.map((folder) => {
+              const count = entries.filter((e) => e.folder === folder.id).length;
+              return (
+                <div key={folder.id} className="journal-folder-row">
+                  <button
+                    type="button"
+                    className={`journal-folder-item ${activeFolderId === folder.id ? "active" : ""}`}
+                    onClick={() => setActiveFolderId(folder.id)}
+                  >
+                    <span>{folder.name}</span>
+                    <span className="journal-folder-count">{count}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="journal-folder-delete-btn"
+                    onClick={() => handleDeleteFolder(folder.id)}
+                    aria-label={`Delete ${folder.name}`}
+                  >
+                    x
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <input
+            name="journal-search"
+            className="journal-search-input"
+            type="text"
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoComplete="off"
+          />
+
+          <div className="reflect-log-timeline">
+            <AnimatePresence>
+              {filteredEntries.length === 0 ? (
+                <div className="journal-empty journal-empty--compact">
+                  <p className="journal-empty-headline">
+                    {searchQuery ? "No echo here." : "No pages yet."}
+                  </p>
+                  <p className="journal-empty-sub">
+                    {searchQuery ? "Try a softer search." : "Start a note with the + button."}
+                  </p>
+                </div>
+              ) : (
+                groupedEntries.map((group) => (
+                  <div className="reflect-log-group" key={group.key}>
+                    <div className="reflect-log-date-row">
+                      <span>{group.key}</span>
+                    </div>
+                    {group.entries.map((entry) => {
+                      const state = MOOD_TO_STATE[entry.mood] ?? moodMeta(entry.mood);
+                      const expanded = expandedIds.has(entry._id);
+                      return (
+                        <SwipeRow
+                          key={entry._id}
+                          onDelete={() => handleDeleteEntry(entry._id)}
+                        >
+                          <motion.button
+                            type="button"
+                            className={[
+                              "reflect-log-entry",
+                              expanded && "reflect-log-entry--expanded",
+                              selectedId === entry._id || (!selectedId && selectedEntry?._id === entry._id)
+                                ? "active"
+                                : "",
+                            ].filter(Boolean).join(" ")}
+                            onClick={() => toggleEntry(entry._id)}
+                            style={{ "--mood-color": state.color }}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -12, scale: 0.97 }}
+                            transition={{ duration: 0.2 }}
+                            {...hoverAnim}
+                            {...tapAnim}
+                          >
+                            <span className="reflect-log-dot" />
+                            <span className="glass-card reflect-log-card">
+                              <span className="reflect-log-topline">
+                                <span>{formatEntryStamp(entry.createdAt)}</span>
+                                <span className="reflect-log-state">{state.label}</span>
+                              </span>
+                              {entry.title && (
+                                <strong className="reflect-log-title">{entry.title}</strong>
+                              )}
+                              {entry.content && (
+                                <span className="reflect-log-body">{entry.content}</span>
+                              )}
+                              {entry.mentalState && (
+                                <span className="reflect-log-mental">{entry.mentalState}</span>
+                              )}
+                            </span>
+                          </motion.button>
+                        </SwipeRow>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </AnimatePresence>
+          </div>
+        </aside>
       </motion.div>
 
       <motion.button

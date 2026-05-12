@@ -232,9 +232,9 @@ export default function Onboarding() {
 
   return (
     <div className="onboarding-shell">
-      <div className="onboarding-card">
+      <div className="tide-panel onboarding-card">
         {/* Brand */}
-        <div className="onboarding-brand">Elarion</div>
+        <div className="onboarding-brand">Luren <span className="onboarding-brand-by">by Elarion</span></div>
 
         {/* Progress dots */}
         <div className="onboarding-dots">

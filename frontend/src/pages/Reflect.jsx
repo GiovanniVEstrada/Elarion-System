@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useMoodsContext } from "../context/MoodsContext";
 import { useReflectionsContext } from "../context/ReflectionsContext";
 import { useJournalContext } from "../context/JournalContext";
@@ -7,22 +7,16 @@ import { useTasksContext } from "../context/TasksContext";
 import PageShell from "../components/layout/PageShell";
 import MoodTideChart from "../components/MoodTideChart";
 
-const MOOD_SCORE = {
-  great: 10,
-  good: 7.5,
-  neutral: 5,
-  bad: 2.5,
-  awful: 1,
-};
+const MOOD_SCORE = { great: 10, good: 7.5, neutral: 5, bad: 2.5, awful: 1 };
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
-const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const MS_DAY = 24 * 60 * 60 * 1000;
+const DAY_NAMES  = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const MS_DAY     = 24 * 60 * 60 * 1000;
 
 function startOfWeek(date = new Date()) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
-  const day = d.getDay();
+  const day  = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   return d;
@@ -37,7 +31,7 @@ function dateKey(raw) {
 
 function average(values) {
   if (!values.length) return null;
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
 function buildWeekData(moods, weekStart) {
@@ -46,23 +40,23 @@ function buildWeekData(moods, weekStart) {
     d.setDate(weekStart.getDate() + index);
     const key = dateKey(d);
     const scores = moods
-      .filter((entry) => dateKey(entry.date ?? entry.createdAt) === key)
-      .map((entry) => MOOD_SCORE[entry.mood])
-      .filter((score) => score != null);
+      .filter((e) => dateKey(e.date ?? e.createdAt) === key)
+      .map((e) => MOOD_SCORE[e.mood])
+      .filter((s) => s != null);
     const value = average(scores);
     return { day, value, hasEntry: scores.length > 0, date: d, dayName: DAY_NAMES[index] };
   });
 }
 
 function entriesInRange(entries, start, end) {
-  return entries.filter((entry) => {
-    const d = new Date(entry.date ?? entry.createdAt);
+  return entries.filter((e) => {
+    const d = new Date(e.date ?? e.createdAt);
     return !Number.isNaN(d.getTime()) && d >= start && d < end;
   });
 }
 
 function detectStreak(entries) {
-  const days = new Set(entries.map((entry) => dateKey(entry.createdAt)).filter(Boolean));
+  const days = new Set(entries.map((e) => dateKey(e.createdAt)).filter(Boolean));
   let streak = 0;
   const cursor = new Date();
   cursor.setHours(0, 0, 0, 0);
@@ -82,11 +76,11 @@ function detectPattern(weekData) {
   if (avg <= 3) return "The water has been low. Rest is data too.";
 
   const firstThree = average(weekData.slice(0, 3).filter((item) => item.value != null).map((item) => item.value));
-  const lastThree = average(weekData.slice(4, 7).filter((item) => item.value != null).map((item) => item.value));
+  const lastThree  = average(weekData.slice(4, 7).filter((item) => item.value != null).map((item) => item.value));
   if (firstThree != null && lastThree != null && lastThree - firstThree >= 1) return "The current is rising.";
   if (firstThree != null && lastThree != null && firstThree - lastThree >= 1) return "The tide is pulling back.";
 
-  const peak = valid.reduce((best, item) => item.value > best.value ? item : best, valid[0]);
+  const peak   = valid.reduce((best, item) => item.value > best.value ? item : best, valid[0]);
   const others = valid.filter((item) => item !== peak);
   if (others.length && peak.value - Math.max(...others.map((item) => item.value)) >= 1) {
     return `Energy rose highest on ${peak.dayName}.`;
@@ -96,70 +90,69 @@ function detectPattern(weekData) {
 }
 
 function patternSubtitle(pattern) {
-  if (pattern.includes("high")) return "Mood tracked as a lifted line, with the week holding above the usual waterline.";
-  if (pattern.includes("low")) return "Mood moved through quieter water this week, pointing toward rest and recovery.";
-  if (pattern.includes("rising")) return "Mood tracked as a flowing line, with the current rising toward the weekend.";
+  if (pattern.includes("high"))    return "Mood tracked as a lifted line, with the week holding above the usual waterline.";
+  if (pattern.includes("low"))     return "Mood moved through quieter water this week, pointing toward rest and recovery.";
+  if (pattern.includes("rising"))  return "Mood tracked as a flowing line, with the current rising toward the weekend.";
   if (pattern.includes("pulling")) return "Mood tracked as a flowing line, with the tide easing back late in the week.";
   if (pattern.includes("highest")) return pattern.replace("Energy rose", "Energy rises");
   return "Mood tracked as a flowing line. Log more days to sharpen the signal.";
 }
 
 export default function Reflect() {
-  const { moods } = useMoodsContext();
-  const { reflections } = useReflectionsContext();
-  const { entries: journalEntries } = useJournalContext();
-  const { tasks } = useTasksContext();
+  const { moods }                       = useMoodsContext();
+  const { reflections }                 = useReflectionsContext();
+  const { entries: journalEntries }     = useJournalContext();
+  const { tasks }                       = useTasksContext();
 
-  const weekStart = useMemo(() => startOfWeek(), []);
+  const weekStart     = useMemo(() => startOfWeek(), []);
   const nextWeekStart = useMemo(() => new Date(weekStart.getTime() + 7 * MS_DAY), [weekStart]);
   const lastWeekStart = useMemo(() => new Date(weekStart.getTime() - 7 * MS_DAY), [weekStart]);
 
-  const weekData = useMemo(() => buildWeekData(moods, weekStart), [moods, weekStart]);
-  const thisWeekMoods = useMemo(() => entriesInRange(moods, weekStart, nextWeekStart), [moods, weekStart, nextWeekStart]);
-  const lastWeekMoods = useMemo(() => entriesInRange(moods, lastWeekStart, weekStart), [moods, lastWeekStart, weekStart]);
-  const thisWeekJournal = useMemo(() => entriesInRange(journalEntries, weekStart, nextWeekStart), [journalEntries, weekStart, nextWeekStart]);
+  const weekData           = useMemo(() => buildWeekData(moods, weekStart), [moods, weekStart]);
+  const thisWeekMoods      = useMemo(() => entriesInRange(moods, weekStart, nextWeekStart), [moods, weekStart, nextWeekStart]);
+  const lastWeekMoods      = useMemo(() => entriesInRange(moods, lastWeekStart, weekStart), [moods, lastWeekStart, weekStart]);
+  const thisWeekJournal    = useMemo(() => entriesInRange(journalEntries, weekStart, nextWeekStart), [journalEntries, weekStart, nextWeekStart]);
   const thisWeekReflections = useMemo(() => entriesInRange(reflections, weekStart, nextWeekStart), [reflections, weekStart, nextWeekStart]);
   const completedWithSignal = useMemo(
-    () => tasks.filter((task) => task.completed && (task.alignmentScore || task.postMood)),
+    () => tasks.filter((t) => t.completed && (t.alignmentScore || t.postMood)),
     [tasks]
   );
 
   const validScores = weekData.filter((item) => item.value != null).map((item) => item.value);
-  const avgMood = average(validScores);
-  const lastAvg = average(
-    lastWeekMoods
-      .map((entry) => MOOD_SCORE[entry.mood])
-      .filter((score) => score != null)
+  const avgMood     = average(validScores);
+  const lastAvg     = average(
+    lastWeekMoods.map((e) => MOOD_SCORE[e.mood]).filter((s) => s != null)
   );
-  const delta = avgMood != null && lastAvg != null ? avgMood - lastAvg : null;
-  const pattern = detectPattern(weekData);
+  const delta         = avgMood != null && lastAvg != null ? avgMood - lastAvg : null;
+  const pattern       = detectPattern(weekData);
   const journalStreak = detectStreak(journalEntries);
 
   return (
     <PageShell>
       <motion.header
-        className="reflect-hero"
+        className="reflect-hero tide-hero"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.36, ease: "easeOut" }}
       >
-        <p className="reflect-hero-kicker">This Week</p>
-        <h1 className="reflect-hero-title">Your tide chart</h1>
+        <p className="reflect-hero-kicker tide-hero-kicker">This Week</p>
+        <h1 className="reflect-hero-title tide-hero-title">Your tide chart</h1>
         <p className="reflect-hero-subtitle">{patternSubtitle(pattern)}</p>
       </motion.header>
 
+      {/* ── Insights section ── */}
       <motion.section
         className="reflect-insights"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08, duration: 0.38 }}
       >
-        <div className="reflect-chart-card">
+        <div className="glass-card reflect-chart-card">
           <MoodTideChart weekData={weekData} />
         </div>
 
         <div className="reflect-stat-row">
-          <div className="reflect-stat-card">
+          <div className="glass-card reflect-stat-card">
             <p className="reflect-stat-kicker">Avg Mood</p>
             <strong className="reflect-stat-value">{avgMood == null ? "--" : avgMood.toFixed(1)}</strong>
             <span className={[
@@ -171,7 +164,7 @@ export default function Reflect() {
             </span>
           </div>
 
-          <div className="reflect-stat-card">
+          <div className="glass-card reflect-stat-card">
             <p className="reflect-stat-kicker">Reflections</p>
             <strong className="reflect-stat-value">{thisWeekJournal.length}</strong>
             <span className="reflect-stat-sub">
@@ -180,7 +173,7 @@ export default function Reflect() {
           </div>
         </div>
 
-        <div className="reflect-pattern-card">
+        <div className="glass-card reflect-pattern-card">
           <p className="reflect-pattern-kicker">Pattern Noticed</p>
           <p className="reflect-pattern-text">{pattern || "Patterns surface with more time."}</p>
         </div>
@@ -191,6 +184,7 @@ export default function Reflect() {
           <span>{completedWithSignal.length} action signals</span>
         </div>
       </motion.section>
+
     </PageShell>
   );
 }

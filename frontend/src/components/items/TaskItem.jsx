@@ -77,12 +77,14 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
         transition={{ duration: 0.22 }}
       >
         <input
+          name="task-edit"
           className="task-edit-input"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
           autoFocus
+          autoComplete="off"
         />
         <motion.button
           className="task-save-btn"

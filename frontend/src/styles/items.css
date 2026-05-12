@@ -49,14 +49,7 @@
 .task-item,
 .calendar-event,
 .journal-entry,
-.journal-note-item,
-.tasks-page-toolbar,
-.tasks-page-list-wrap,
-.calendar-page-toolbar,
-.calendar-page-list-wrap,
-.journal-sidebar,
-.journal-editor-card,
-.journal-preview-card {
+.journal-note-item {
   border-radius: 24px;
 }
 
@@ -174,20 +167,6 @@
   gap: 20px;
 }
 
-.tasks-page-toolbar,
-.tasks-page-list-wrap,
-.calendar-page-toolbar,
-.calendar-page-list-wrap,
-.journal-sidebar,
-.journal-editor-card,
-.journal-preview-card {
-  padding: 20px;
-  border: 1px solid rgba(173, 216, 230, 0.16);
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--glass-shadow);
-}
 
 .tasks-page-controls,
 .calendar-page-controls {
@@ -214,6 +193,7 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-soft);
+  min-height: 44px;
 }
 
 .tasks-filter-btn.active {
@@ -253,19 +233,23 @@
 /* ── Habit Items ── */
 
 .habit-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
   padding: 14px 16px;
   border-radius: 16px;
   background: rgba(6, 19, 31, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
 }
 
-.habit-left { flex: 1; min-width: 0; }
+.habit-item-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
 
 .habit-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -273,66 +257,113 @@
 
 .habit-name {
   color: var(--text-h);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   line-height: 1.4;
+  word-break: break-word;
+}
+
+.habit-name--done {
+  text-decoration: line-through;
+  opacity: 0.5;
+  color: var(--text-soft);
 }
 
 .habit-desc {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-soft);
   opacity: 0.65;
+  word-break: break-word;
 }
 
 .habit-meta {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-top: 4px;
+  margin-top: 5px;
+  flex-wrap: wrap;
 }
 
 .habit-freq-badge {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .habit-streak {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-soft);
 }
 
-.habit-actions {
+.habit-side-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.habit-complete-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid rgba(var(--accent-rgb), 0.4);
+.habit-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
-  color: var(--accent);
-  font-size: 1rem;
+  color: var(--text-muted, #8892a4);
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
-  min-height: 44px;
-  min-width: 44px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.habit-icon-btn:hover {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  border-color: rgba(var(--accent-rgb), 0.2);
+}
+
+.habit-icon-btn--danger:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+  border-color: rgba(255, 107, 107, 0.2);
+}
+
+.habit-complete-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--accent-rgb), 0.35);
+  background: transparent;
+  color: var(--accent);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.habit-complete-btn:hover:not(:disabled) {
+  border-color: rgba(var(--accent-rgb), 0.7);
+  background: rgba(var(--accent-rgb), 0.06);
 }
 
 .habit-complete-btn.done {
   background: rgba(var(--accent-rgb), 0.15);
-  border-color: rgba(var(--accent-rgb), 0.6);
+  border-color: rgba(var(--accent-rgb), 0.55);
   cursor: default;
 }
 
-.habit-complete-btn:disabled { opacity: 0.7; }
+.habit-complete-btn:disabled { opacity: 0.8; }
 
 .habit-form {
   display: flex;
@@ -578,11 +609,8 @@
 /* ── Habit glass card modifier ── */
 
 .habit-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-backdrop);
-  -webkit-backdrop-filter: var(--glass-backdrop);
-  border: 1px solid var(--border);
-  box-shadow: var(--glass-shadow);
+  position: relative;
+  /* glass from glass-card class */
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
@@ -721,7 +749,7 @@
 
   .task-item,
   .habit-item.habit-card {
-    min-height: 74px;
+    min-height: 68px;
     border-radius: 18px;
     border-color: rgba(126, 216, 255, 0.2);
     background:
@@ -731,6 +759,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.14),
       0 14px 28px -22px rgba(0, 0, 0, 0.65);
     overflow: hidden;
+    position: relative;
   }
 
   .task-item::after,
@@ -739,19 +768,16 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 10px;
+    bottom: 8px;
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(126, 216, 255, 0.65), transparent);
     opacity: 0.55;
-  }
-
-  .task-item {
-    position: relative;
+    pointer-events: none;
   }
 
   .task-left input[type="checkbox"],
   .habit-complete-btn {
-    border-color: rgba(78, 205, 196, 0.7);
+    border-color: rgba(78, 205, 196, 0.6);
   }
 
   .task-fab,
@@ -785,5 +811,60 @@
 
   .task-list {
     gap: 12px;
+  }
+}
+
+/* ── Task edit button ── */
+
+.task-edit-btn {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.task-edit-btn:hover {
+  color: var(--accent-teal, #4ecdc4);
+  background: rgba(78, 205, 196, 0.08);
+}
+
+/* ── Habit inline edit form ── */
+
+.habit-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.habit-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.habit-edit-actions .task-add-btn {
+  flex: 1;
+}
+
+.habit-edit-actions .calendar-cancel-btn {
+  flex: 1;
+}
+
+@media (max-width: 380px) {
+  .habit-icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .tasks-hero-title,
+  .cal-hero-title,
+  .journal-hero-title,
+  .settings-hero-title {
+    font-size: clamp(2rem, 10vw, 2.8rem);
   }
 }

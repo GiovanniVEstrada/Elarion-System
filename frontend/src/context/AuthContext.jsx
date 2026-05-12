@@ -6,13 +6,12 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem("token"));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem("token")));
 
   // On mount: verify stored token is still valid
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (!storedToken) {
-      setLoading(false);
       return;
     }
     client
@@ -27,7 +26,6 @@ export function AuthProvider({ children }) {
         setToken(null);
       })
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function saveToken(newToken) {
