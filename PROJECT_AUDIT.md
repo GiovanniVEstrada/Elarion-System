@@ -303,3 +303,6 @@ Priority order for next session:
 6. Mobile journal entry composer UX — sticky "New Entry" CTA or auto-scroll to editor on tap.
 7. Real-device testing pass.
 8. App Store preparation (maskable PNG icon, privacy policy, store listing).
+
+
+Figure out how notifications.

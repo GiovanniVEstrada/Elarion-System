@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useMemo } from "react";
+import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 import { useMoodsContext } from "../context/MoodsContext";
 import { useReflectionsContext } from "../context/ReflectionsContext";
 import { useJournalContext } from "../context/JournalContext";
@@ -140,50 +141,73 @@ export default function Reflect() {
         <p className="reflect-hero-subtitle">{patternSubtitle(pattern)}</p>
       </motion.header>
 
-      {/* ── Insights section ── */}
-      <motion.section
-        className="reflect-insights"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08, duration: 0.38 }}
-      >
-        <div className="glass-card reflect-chart-card">
-          <MoodTideChart weekData={weekData} />
-        </div>
-
-        <div className="reflect-stat-row">
-          <div className="glass-card reflect-stat-card">
-            <p className="reflect-stat-kicker">Avg Mood</p>
-            <strong className="reflect-stat-value">{avgMood == null ? "--" : avgMood.toFixed(1)}</strong>
-            <span className={[
-              "reflect-stat-sub",
-              delta > 0 && "reflect-stat-sub--up",
-              delta < 0 && "reflect-stat-sub--down",
-            ].filter(Boolean).join(" ")}>
-              {delta == null ? "No prior data" : `${delta > 0 ? "+" : ""}${delta.toFixed(1)} vs last`}
-            </span>
+      {moods.length === 0 ? (
+        /* ── No data ever: full empty state ── */
+        <motion.div
+          className="glass-card reflect-empty-state"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.38 }}
+        >
+          <p className="reflect-empty-kicker">No tide yet</p>
+          <h2 className="reflect-empty-title">The water is still.</h2>
+          <p className="reflect-empty-sub">
+            Your mood chart fills as you write. Head to your journal to log your first reflection.
+          </p>
+          <Link to="/journal" className="reflect-empty-cta">Begin a reflection →</Link>
+        </motion.div>
+      ) : (
+        /* ── Insights section ── */
+        <motion.section
+          className="reflect-insights"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.38 }}
+        >
+          <div className="glass-card reflect-chart-card">
+            <MoodTideChart weekData={weekData} />
           </div>
 
-          <div className="glass-card reflect-stat-card">
-            <p className="reflect-stat-kicker">Reflections</p>
-            <strong className="reflect-stat-value">{thisWeekJournal.length}</strong>
-            <span className="reflect-stat-sub">
-              {journalStreak} day{journalStreak === 1 ? "" : "s"} · streak
-            </span>
+          <div className="reflect-stat-row">
+            <div className="glass-card reflect-stat-card">
+              <p className="reflect-stat-kicker">Avg Mood</p>
+              <strong className="reflect-stat-value">{avgMood == null ? "--" : avgMood.toFixed(1)}</strong>
+              <span className={[
+                "reflect-stat-sub",
+                delta > 0 && "reflect-stat-sub--up",
+                delta < 0 && "reflect-stat-sub--down",
+              ].filter(Boolean).join(" ")}>
+                {delta == null ? "No prior data" : `${delta > 0 ? "+" : ""}${delta.toFixed(1)} vs last`}
+              </span>
+            </div>
+
+            <div className="glass-card reflect-stat-card">
+              <p className="reflect-stat-kicker">Reflections</p>
+              <strong className="reflect-stat-value">{thisWeekJournal.length}</strong>
+              <span className="reflect-stat-sub">
+                {journalStreak} day{journalStreak === 1 ? "" : "s"} · streak
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="glass-card reflect-pattern-card">
-          <p className="reflect-pattern-kicker">Pattern Noticed</p>
-          <p className="reflect-pattern-text">{pattern || "Patterns surface with more time."}</p>
-        </div>
+          <div className="glass-card reflect-pattern-card">
+            <p className="reflect-pattern-kicker">Pattern Noticed</p>
+            <p className="reflect-pattern-text">{pattern || "Patterns surface with more time."}</p>
+          </div>
 
-        <div className="reflect-signal-strip">
-          <span>{thisWeekMoods.length} mood logs</span>
-          <span>{thisWeekReflections.length} predictions</span>
-          <span>{completedWithSignal.length} action signals</span>
-        </div>
-      </motion.section>
+          <div className="reflect-signal-strip">
+            <span>{thisWeekMoods.length} mood logs</span>
+            <span>{thisWeekReflections.length} predictions</span>
+            <span>{completedWithSignal.length} action signals</span>
+          </div>
+
+          {thisWeekMoods.length === 0 && (
+            <Link to="/journal" className="reflect-week-nudge">
+              No entries this week · Write in your journal to update the tide →
+            </Link>
+          )}
+        </motion.section>
+      )}
 
     </PageShell>
   );

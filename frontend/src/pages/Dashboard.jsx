@@ -264,7 +264,6 @@ export default function Dashboard() {
           <h1 className="home-hero-date">{heroDate}</h1>
           <p className="home-hero-sub">{greeting}{user?.name ? `, ${user.name}` : ""}</p>
         </div>
-        <Link to="/settings" className="home-settings-btn" aria-label="Settings">⚙</Link>
       </motion.header>
 
       <motion.div

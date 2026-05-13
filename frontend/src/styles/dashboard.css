@@ -117,23 +117,6 @@
   margin: 0;
 }
 
-.home-settings-btn {
-  font-size: 1.25rem;
-  color: var(--text-soft);
-  opacity: 0.4;
-  text-decoration: none;
-  padding: 6px;
-  border-radius: 10px;
-  flex-shrink: 0;
-  margin-top: 4px;
-  transition: opacity 0.2s ease, color 0.2s ease;
-}
-
-.home-settings-btn:hover {
-  opacity: 1;
-  color: var(--accent-teal, #4ecdc4);
-}
-
 /* ── Agenda Section ── */
 
 .agenda-section {

@@ -205,6 +205,22 @@ export default function useJournal() {
     }
   }
 
+  async function handleUpdateEntry(id, patch) {
+    if (!isAuthenticated) {
+      const updated = entries.map((e) => e._id === id ? { ...e, ...patch } : e);
+      setEntries(updated);
+      guestSaveEntries(updated);
+      return;
+    }
+    try {
+      const res = await client.patch(`/journal/${id}`, patch);
+      const updated = normalizeEntry(res.data.data ?? res.data);
+      setEntries((prev) => prev.map((e) => e._id === id ? updated : e));
+    } catch (err) {
+      console.error("Failed to update entry", err);
+    }
+  }
+
   async function handleDeleteEntry(id) {
     const updated = entries.filter((e) => e._id !== id);
     setEntries(updated);
@@ -257,6 +273,7 @@ export default function useJournal() {
     stopEditing,
     selectedEntry,
     handleAddEntry,
+    handleUpdateEntry,
     handleDeleteEntry,
     refetch: fetchEntries,
   };

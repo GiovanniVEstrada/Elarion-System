@@ -366,3 +366,78 @@
   color: #fff;
   border-radius: 0 12px 12px 0;
 }
+
+/* Empty state — no mood data ever */
+
+.reflect-empty-state {
+  padding: 48px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reflect-empty-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-teal, #4ecdc4);
+  font-weight: 600;
+  margin: 0;
+}
+
+.reflect-empty-title {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 400;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.reflect-empty-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted, #8892a4);
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0;
+}
+
+.reflect-empty-cta {
+  margin-top: 8px;
+  padding: 10px 22px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 205, 196, 0.28);
+  background: rgba(78, 205, 196, 0.08);
+  color: var(--accent-teal, #4ecdc4);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.reflect-empty-cta:hover {
+  background: rgba(78, 205, 196, 0.14);
+  border-color: rgba(78, 205, 196, 0.44);
+}
+
+/* Week nudge — has past data but nothing this week */
+
+.reflect-week-nudge {
+  display: block;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted, #8892a4);
+  text-decoration: none;
+  padding: 10px 0 2px;
+  transition: color 0.15s ease;
+}
+
+.reflect-week-nudge:hover {
+  color: var(--accent-teal, #4ecdc4);
+}
