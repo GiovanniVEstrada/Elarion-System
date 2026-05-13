@@ -2,11 +2,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useToastEmitter } from "../components/Toast";
+import { checkGuestExpiry, markGuestDataSeeded } from "../utils/guestExpiry";
 
 const GUEST_KEY = "guest_tasks";
 const sanitizeId = (t) => ({ ...t, _id: typeof t._id === "number" ? `guest_${t._id}` : (t._id ?? `guest_${crypto.randomUUID()}`) });
-const guestLoad = () => { try { return (JSON.parse(localStorage.getItem(GUEST_KEY) || "[]")).map(sanitizeId); } catch { return []; } };
+const guestLoad = () => {
+  checkGuestExpiry();
+  const raw = localStorage.getItem(GUEST_KEY);
+  if (raw === null) return null;
+  try { return JSON.parse(raw).map(sanitizeId); } catch { return []; }
+};
 const guestSave = (t) => localStorage.setItem(GUEST_KEY, JSON.stringify(t));
+
+function seedMockTasks() {
+  const d = (offset) => new Date(Date.now() - offset * 86400000).toISOString();
+  return [
+    { _id: "guest_t1", title: "Design system tokens for Luren",         completed: false, energyLevel: "high",   intent: "Define the visual language for the landing page", priority: "high",   createdAt: d(1) },
+    { _id: "guest_t2", title: "Set up Next.js project structure",        completed: false, energyLevel: "medium", intent: null, priority: "high",   createdAt: d(1) },
+    { _id: "guest_t3", title: "Research competitor landing pages",       completed: true,  energyLevel: "low",    intent: "Get inspired by what's working", priority: "medium", createdAt: d(3) },
+    { _id: "guest_t4", title: "Write hero copy",                         completed: true,  energyLevel: "medium", intent: "Capture the value prop in one sentence", priority: "high", createdAt: d(2) },
+    { _id: "guest_t5", title: "Schedule call with mentor",               completed: false, energyLevel: "low",    intent: null, priority: "low",    createdAt: d(0) },
+  ].map(sanitizeId);
+}
 
 export default function useTasks() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -36,7 +53,12 @@ export default function useTasks() {
 
   const fetchTasks = useCallback(async (overrides = {}) => {
     if (!isAuthenticated) {
-      const all = guestLoad();
+      let all = guestLoad();
+      if (all === null) {
+        all = seedMockTasks();
+        guestSave(all);
+        markGuestDataSeeded();
+      }
       const q = debouncedSearch.trim().toLowerCase();
       setTasks(q ? all.filter((t) =>
         (t.title || "").toLowerCase().includes(q) ||

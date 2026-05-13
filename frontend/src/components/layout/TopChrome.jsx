@@ -26,10 +26,10 @@ export default function TopChrome({ isGuest, onOpen, menuBtnRef, title, user }) 
         </NavLink>
       ) : isGuest ? (
         <Link to="/login" className="nav-profile-btn" aria-label="Log in">
-          E
+          L
         </Link>
       ) : (
-        <span className="nav-profile-btn">E</span>
+        <span className="nav-profile-btn">L</span>
       )}
     </motion.header>
   );

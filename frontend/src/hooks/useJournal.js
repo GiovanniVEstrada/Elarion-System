@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { checkGuestExpiry, markGuestDataSeeded } from "../utils/guestExpiry";
 
 const MOOD_TO_STRING = { 1: "awful", 2: "bad", 3: "neutral", 4: "good", 5: "great" };
 const MOOD_TO_NUM    = { awful: 1, bad: 2, neutral: 3, good: 4, great: 5 };
@@ -11,12 +12,33 @@ function normalizeEntry(e) {
 
 const GUEST_ENTRIES_KEY = "guest_journal_entries";
 const GUEST_FOLDERS_KEY = "guest_journal_folders";
-const sanitizeEntryId = (e) => ({ ...e, _id: typeof e._id === "number" ? `guest_${e._id}` : (e._id ?? `guest_${crypto.randomUUID()}`) });
+const sanitizeEntryId  = (e) => ({ ...e, _id: typeof e._id === "number" ? `guest_${e._id}` : (e._id ?? `guest_${crypto.randomUUID()}`) });
 const sanitizeFolderId = (f) => ({ ...f, id: typeof f.id === "number" ? `folder_${f.id}` : (f.id ?? crypto.randomUUID()) });
-const guestLoadEntries  = () => { try { return (JSON.parse(localStorage.getItem(GUEST_ENTRIES_KEY) || "[]")).map(sanitizeEntryId); } catch { return []; } };
-const guestLoadFolders  = () => { try { return (JSON.parse(localStorage.getItem(GUEST_FOLDERS_KEY) || "[]")).map(sanitizeFolderId); } catch { return []; } };
-const guestSaveEntries  = (e) => localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(e));
-const guestSaveFolders  = (f) => localStorage.setItem(GUEST_FOLDERS_KEY, JSON.stringify(f));
+const guestLoadEntries = () => {
+  checkGuestExpiry();
+  const raw = localStorage.getItem(GUEST_ENTRIES_KEY);
+  if (raw === null) return null;
+  try { return JSON.parse(raw).map(sanitizeEntryId); } catch { return []; }
+};
+const guestLoadFolders = () => { try { return (JSON.parse(localStorage.getItem(GUEST_FOLDERS_KEY) || "[]")).map(sanitizeFolderId); } catch { return []; } };
+const guestSaveEntries = (e) => localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(e));
+const guestSaveFolders = (f) => localStorage.setItem(GUEST_FOLDERS_KEY, JSON.stringify(f));
+
+function seedMockJournal() {
+  const d = (offset) => new Date(Date.now() - offset * 86400000).toISOString();
+  return {
+    entries: [
+      { _id: "guest_j1", title: "Morning pages",                content: "Woke up early and had a really productive first hour. There's something clarifying about writing before the day gets loud. I want to keep building this habit.",                                               mood: 5, clarity: 4, mentalState: "focused",    folder: "Daily",       createdAt: d(0) },
+      { _id: "guest_j2", title: "On deep work and distraction", content: "Been thinking about how often I let shallow tasks crowd out the important ones. The calendar blocking has been helping — I just need to actually protect those blocks.",                                      mood: 4, clarity: 3, mentalState: "reflective", folder: "Thoughts",    createdAt: d(2) },
+      { _id: "guest_j3", title: "Weekly reflection",            content: "Good week overall. Shipped the initial tasks module, had two solid deep work sessions, and hit my meditation habit every day. Feeling aligned.",                                                              mood: 5, clarity: 5, mentalState: "calm",       folder: "Reflections", createdAt: d(5) },
+    ].map(sanitizeEntryId),
+    folders: [
+      { id: "Daily",       name: "Daily" },
+      { id: "Thoughts",    name: "Thoughts" },
+      { id: "Reflections", name: "Reflections" },
+    ].map(sanitizeFolderId),
+  };
+}
 
 export default function useJournal() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -42,9 +64,19 @@ export default function useJournal() {
 
   const fetchEntries = useCallback(async () => {
     if (!isAuthenticated) {
-      const saved = guestLoadEntries();
-      setEntries(saved);
-      setFolders(guestLoadFolders());
+      let savedEntries = guestLoadEntries();
+      if (savedEntries === null) {
+        const seed = seedMockJournal();
+        savedEntries = seed.entries;
+        guestSaveEntries(savedEntries);
+        guestSaveFolders(seed.folders);
+        markGuestDataSeeded();
+        setEntries(savedEntries);
+        setFolders(seed.folders);
+      } else {
+        setEntries(savedEntries);
+        setFolders(guestLoadFolders());
+      }
       return;
     }
     setLoading(true);

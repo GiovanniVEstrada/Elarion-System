@@ -11,9 +11,7 @@ const FEELING_META = {
 
 export default function EventItem({ event, onDelete, onEdit, onSetActualFeeling, formatDate, formatTime }) {
   const isPast       = event.date < getTodayStr();
-  const feelingColor = event.expectedFeeling
-    ? FEELING_META[event.expectedFeeling].color
-    : "rgba(78, 205, 196, 0.35)";
+  const feelingColor = FEELING_META[event.expectedFeeling]?.color ?? "rgba(78, 205, 196, 0.35)";
 
   return (
     <motion.li
