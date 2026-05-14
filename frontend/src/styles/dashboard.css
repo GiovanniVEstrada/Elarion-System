@@ -138,9 +138,18 @@
   color: var(--text-muted, #8892a4);
 }
 
-.agenda-group-label--now   { color: var(--accent-teal, #4ecdc4); }
-.agenda-group-label--today { color: var(--text-soft); }
-.agenda-group-label--soon  { color: var(--text-muted, #8892a4); opacity: 0.6; }
+.agenda-group-label--now    { color: var(--accent-teal, #4ecdc4); }
+.agenda-group-label--events { color: var(--text-soft); }
+.agenda-group-label--tasks  { color: var(--accent, #ffc83c); }
+.agenda-group-label--habits { color: var(--text-muted, #8892a4); opacity: 0.75; }
+
+.agenda-group-empty {
+  margin: 0;
+  padding: 10px 2px 0;
+  font-size: 0.84rem;
+  color: var(--text-muted, #8892a4);
+  opacity: 0.68;
+}
 
 /* ── Vertical Timeline Thread ── */
 
@@ -200,8 +209,8 @@
     0 0 22px rgba(78, 205, 196, 0.28);
 }
 
-/* SOON node — dimmed, future-feeling */
-.agenda-section--timeline .agenda-card--soon::before {
+/* Habit node — dimmed, routine-feeling */
+.agenda-section--timeline .agenda-card--habit::before {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(78, 205, 196, 0.12);
   opacity: 0.5;
@@ -236,10 +245,34 @@
 }
 
 .agenda-type-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* teal — calendar events */
+.agenda-type-dot--event {
+  background: var(--accent-teal, #4ecdc4);
+  box-shadow:
+    0 0 5px rgba(78, 205, 196, 0.9),
+    0 0 14px rgba(78, 205, 196, 0.45);
+}
+
+/* sky blue — tasks / actions */
+.agenda-type-dot--task {
+  background: var(--accent, #74d8ff);
+  box-shadow:
+    0 0 5px rgba(116, 216, 255, 0.9),
+    0 0 14px rgba(116, 216, 255, 0.45);
+}
+
+/* lavender — habits */
+.agenda-type-dot--habit {
+  background: var(--accent-3, #b58cff);
+  box-shadow:
+    0 0 5px rgba(181, 140, 255, 0.9),
+    0 0 14px rgba(181, 140, 255, 0.45);
 }
 
 .agenda-title {
@@ -268,6 +301,17 @@
   padding: 2px 8px;
   border-radius: 999px;
   flex-shrink: 0;
+}
+
+.agenda-detail {
+  font-size: 0.75rem;
+  color: var(--text-muted, #8892a4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.agenda-detail--streak {
+  color: var(--text-soft);
 }
 
 .agenda-empty {

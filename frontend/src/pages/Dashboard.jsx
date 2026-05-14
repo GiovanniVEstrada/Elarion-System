@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useCalendarContext } from "../context/CalendarContext";
 import { useTasksContext } from "../context/TasksContext";
@@ -20,6 +19,7 @@ const DOT_EVENT = "#4ecdc4";       // teal — event
 const DOT_TASK  = "#ffc83c";       // amber — action
 const DOT_EMPTY = "rgba(78, 205, 196, 0.2)";
 const DOT_FUTURE = "rgba(78, 205, 196, 0.4)";
+const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
 
 function toLocalDateStr(d) {
   const pad = (x) => String(x).padStart(2, "0");
@@ -39,6 +39,34 @@ function isNow(timeStr) {
   const eventMin = h * 60 + (m || 0);
   const now = new Date();
   return Math.abs(eventMin - (now.getHours() * 60 + now.getMinutes())) <= 90;
+}
+
+function getDatePart(value) {
+  if (!value) return null;
+  if (typeof value === "string") return value.slice(0, 10);
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function formatDueDate(value, todayStr) {
+  const dateStr = getDatePart(value);
+  if (!dateStr) return null;
+  if (dateStr === todayStr) return "Due today";
+
+  const formattedDate = new Date(`${dateStr}T12:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  return `Due ${formattedDate}`;
+}
+
+function getPriorityRank(priority) {
+  return PRIORITY_RANK[priority] ?? PRIORITY_RANK.medium;
+}
+
+function getHabitStreak(habit) {
+  return habit.currentStreak ?? habit.cachedStreak ?? habit.streak ?? 0;
 }
 
 function buildWavePath(xs, ys) {
@@ -174,31 +202,51 @@ function TideRibbon({ events, tasks }) {
   );
 }
 
-function AgendaCard({ item, active, soon }) {
-  const DOT_COLOR = {
-    task:  "var(--accent)",
-    event: "var(--accent-teal)",
-    habit: "var(--accent-3)",
-  };
+function AgendaCard({ item, active, habit, todayStr }) {
   const TYPE_LABEL = { task: "Action", event: "Event", habit: "Habit" };
+  const dueDateLabel = item._type === "task" ? formatDueDate(item.dueDate, todayStr) : null;
+  const priority = item.priority || "medium";
+  const streak = getHabitStreak(item);
 
   return (
     <div className={[
       "agenda-card",
       active && "agenda-card--active",
-      soon   && "agenda-card--soon",
+      habit  && "agenda-card--habit",
     ].filter(Boolean).join(" ")}>
       <span
-        className="agenda-type-dot"
-        style={{ background: DOT_COLOR[item._type] }}
+        className={`agenda-type-dot agenda-type-dot--${item._type}`}
         aria-label={TYPE_LABEL[item._type]}
       />
       <span className="agenda-title">{item.title ?? item.name}</span>
-      {item.time && (
+      {item._type === "event" && item.time && (
         <span className="agenda-time">{formatTime(item.time)}</span>
       )}
-      {item._type === "task" && item.priority && (
-        <span className="agenda-badge">{item.priority}</span>
+      {item._type === "task" && (
+        <>
+          <span className="agenda-badge agenda-badge--priority">{priority}</span>
+          {dueDateLabel && (
+            <span className="agenda-detail">{dueDateLabel}</span>
+          )}
+        </>
+      )}
+      {item._type === "habit" && (
+        <span className="agenda-detail agenda-detail--streak">
+          {streak} day{streak === 1 ? "" : "s"} streak
+        </span>
+      )}
+    </div>
+  );
+}
+
+function AgendaGroup({ label, labelClassName, items, emptyMessage, renderItem }) {
+  return (
+    <div className="agenda-group">
+      <p className={`agenda-group-label ${labelClassName}`}>{label}</p>
+      {items.length > 0 ? (
+        items.map(renderItem)
+      ) : (
+        <p className="agenda-group-empty">{emptyMessage}</p>
       )}
     </div>
   );
@@ -235,19 +283,36 @@ export default function Dashboard() {
 
   const nowIds = useMemo(() => new Set(nowItems.map((e) => e._id)), [nowItems]);
 
-  const todayItems = useMemo(() => [
-    ...todayEvents.filter((e) => !nowIds.has(e._id)).map((e) => ({ ...e, _type: "event" })),
-    ...pendingTasks.map((t) => ({ ...t, _type: "task" })),
-  ], [todayEvents, nowIds, pendingTasks]);
+  const todayEventItems = useMemo(
+    () => todayEvents
+      .filter((e) => e.time && !nowIds.has(e._id))
+      .sort((a, b) => a.time.localeCompare(b.time))
+      .map((e) => ({ ...e, _type: "event" })),
+    [todayEvents, nowIds]
+  );
 
-  const soonItems = useMemo(
-    () => pendingHabits.slice(0, 5).map((h) => ({ ...h, _type: "habit" })),
+  const todayTaskItems = useMemo(
+    () => pendingTasks
+      .slice()
+      .sort((a, b) => getPriorityRank(a.priority) - getPriorityRank(b.priority))
+      .map((t) => ({ ...t, _type: "task" })),
+    [pendingTasks]
+  );
+
+  const habitItems = useMemo(
+    () => pendingHabits
+      .slice()
+      .sort((a, b) => getHabitStreak(b) - getHabitStreak(a))
+      .map((h) => ({ ...h, _type: "habit" })),
     [pendingHabits]
   );
 
   const heroDate    = today.toLocaleDateString("en-US", { month: "long", day: "numeric" });
   const greeting    = getGreeting();
-  const hasAnything = nowItems.length > 0 || todayItems.length > 0 || soonItems.length > 0;
+  const hasAnything = nowItems.length > 0
+    || todayEventItems.length > 0
+    || todayTaskItems.length > 0
+    || habitItems.length > 0;
 
   return (
     <div className="home-page app-mobile-frame">
@@ -272,34 +337,49 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.14, duration: 0.4, ease: "easeOut" }}
       >
-        {nowItems.length > 0 && (
-          <div className="agenda-group">
-            <p className="agenda-group-label agenda-group-label--now">Now</p>
-            {nowItems.map((item) => (
-              <AgendaCard key={item._id} item={item} active />
-            ))}
-          </div>
-        )}
+        {hasAnything ? (
+          <>
+            <AgendaGroup
+              label="Now"
+              labelClassName="agenda-group-label--now"
+              items={nowItems}
+              emptyMessage="Nothing scheduled right now"
+              renderItem={(item) => (
+                <AgendaCard key={`now-${item._id}`} item={item} active todayStr={todayStr} />
+              )}
+            />
 
-        {todayItems.length > 0 && (
-          <div className="agenda-group">
-            <p className="agenda-group-label agenda-group-label--today">Today</p>
-            {todayItems.map((item) => (
-              <AgendaCard key={item._id} item={item} />
-            ))}
-          </div>
-        )}
+            <AgendaGroup
+              label="Today's Events"
+              labelClassName="agenda-group-label--events"
+              items={todayEventItems}
+              emptyMessage="No events scheduled today"
+              renderItem={(item) => (
+                <AgendaCard key={`event-${item._id}`} item={item} todayStr={todayStr} />
+              )}
+            />
 
-        {soonItems.length > 0 && (
-          <div className="agenda-group">
-            <p className="agenda-group-label agenda-group-label--soon">Soon</p>
-            {soonItems.map((item) => (
-              <AgendaCard key={item._id} item={item} soon />
-            ))}
-          </div>
-        )}
+            <AgendaGroup
+              label="Today's Tasks"
+              labelClassName="agenda-group-label--tasks"
+              items={todayTaskItems}
+              emptyMessage="No tasks for today"
+              renderItem={(item) => (
+                <AgendaCard key={`task-${item._id}`} item={item} todayStr={todayStr} />
+              )}
+            />
 
-        {!hasAnything && (
+            <AgendaGroup
+              label="Habits"
+              labelClassName="agenda-group-label--habits"
+              items={habitItems}
+              emptyMessage="All habits done"
+              renderItem={(item) => (
+                <AgendaCard key={`habit-${item._id}`} item={item} habit todayStr={todayStr} />
+              )}
+            />
+          </>
+        ) : (
           <div className="agenda-empty">
             <p className="agenda-empty-headline">The tide is still.</p>
             <p className="agenda-empty-sub">Add an action or calendar event to begin your day.</p>

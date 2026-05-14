@@ -280,6 +280,7 @@ export default function Settings() {
                 Type <strong>DELETE</strong> to confirm
               </p>
               <input
+                name="settings-delete-confirm"
                 className="settings-input settings-input--danger"
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}

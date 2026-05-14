@@ -31,6 +31,7 @@ export default function JournalCard() {
 
       <form className="journal-form" onSubmit={handleAddEntry}>
         <textarea
+          name="journal-card-content"
           className="journal-textarea"
           placeholder="Write a reflection..."
           value={content}

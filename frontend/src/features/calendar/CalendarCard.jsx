@@ -37,6 +37,7 @@ export default function CalendarCard() {
 
       <form className="calendar-form calendar-form--stacked" onSubmit={handleAddEvent}>
         <input
+          name="calendar-event-title"
           className="calendar-input"
           type="text"
           placeholder="Event title..."
@@ -45,6 +46,7 @@ export default function CalendarCard() {
         />
         <div style={{ display: "flex", gap: "10px" }}>
           <input
+            name="calendar-event-date"
             className="calendar-date-input"
             type="date"
             value={eventDate}
@@ -52,6 +54,7 @@ export default function CalendarCard() {
             style={{ flex: 1 }}
           />
           <input
+            name="calendar-event-time"
             className="calendar-time-input"
             type="time"
             value={eventTime}

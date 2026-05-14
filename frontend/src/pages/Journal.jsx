@@ -60,25 +60,56 @@ function groupEntriesByDate(entries) {
 
 // ── SwipeRow ───────────────────────────────────────────────────────────────
 
-function SwipeRow({ onDelete, children }) {
-  const [swiped, setSwiped] = useState(false);
-  const touchStartX         = useRef(null);
+function SwipeRow({ entryId, revealedSwipe, onReveal, onDelete, onEdit, children }) {
+  const touchStartX = useRef(null);
 
-  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX; }
+  const swiped       = revealedSwipe?.id === entryId && revealedSwipe?.dir === "left";
+  const editRevealed = revealedSwipe?.id === entryId && revealedSwipe?.dir === "right";
+
+  function onTouchStart(e) {
+    if (revealedSwipe?.id && revealedSwipe.id !== entryId) onReveal(null);
+    touchStartX.current = e.touches[0].clientX;
+  }
+
   function onTouchEnd(e) {
     if (touchStartX.current === null) return;
     const delta = touchStartX.current - e.changedTouches[0].clientX;
-    if (delta > 48)  setSwiped(true);
-    if (delta < -24) setSwiped(false);
+    if (delta > 48) {
+      onReveal({ id: entryId, dir: "left" });
+    } else if (delta < -48) {
+      onReveal({ id: entryId, dir: "right" });
+    } else if (revealedSwipe?.id === entryId) {
+      onReveal(null);
+    }
     touchStartX.current = null;
   }
 
   return (
     <div className="log-entry-wrap">
+      <AnimatePresence>
+        {editRevealed && (
+          <motion.div
+            className="log-entry-actions log-entry-actions--left"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.15 }}
+          >
+            <button
+              className="log-action-btn log-action-btn--edit"
+              type="button"
+              onClick={() => { onReveal(null); onEdit?.(); }}
+              aria-label="Edit entry"
+            >
+              ✎
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <motion.div
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        animate={{ x: swiped ? -80 : 0 }}
+        animate={{ x: swiped ? -80 : editRevealed ? 80 : 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         {children}
@@ -109,26 +140,8 @@ function SwipeRow({ onDelete, children }) {
 
 // ── TimelineEntry ──────────────────────────────────────────────────────────
 
-function TimelineEntry({ entry, expanded, onToggle, onDelete, handleUpdateEntry }) {
-  const [editTitle, setEditTitle] = useState(entry.title || "");
-  const [editBody,  setEditBody]  = useState(entry.content || "");
-
+function TimelineEntry({ entry, expanded, onToggle, onEdit, onConfirmDelete, folderName }) {
   const state = MOOD_TO_STATE[entry.mood] ?? moodMeta(entry.mood);
-
-  useEffect(() => {
-    if (!expanded) {
-      setEditTitle(entry.title || "");
-      setEditBody(entry.content || "");
-    }
-  }, [expanded, entry.title, entry.content]);
-
-  async function handleSave() {
-    await handleUpdateEntry(entry._id, {
-      title:   editTitle.trim() || "Untitled Note",
-      content: editBody.trim(),
-    });
-    onToggle();
-  }
 
   function handleKeyDown(e) {
     if (e.key === "Enter" || e.key === " ") {
@@ -155,73 +168,235 @@ function TimelineEntry({ entry, expanded, onToggle, onDelete, handleUpdateEntry 
       <span className="reflect-log-dot" />
       <span className="glass-card reflect-log-card">
         <span className="reflect-log-topline">
-          <span>{formatEntryStamp(entry.createdAt)}</span>
+          <span className="reflect-log-topline-left">
+            <span>{formatEntryStamp(entry.createdAt)}</span>
+            {folderName && (
+              <span className="reflect-log-folder-tag">· {folderName}</span>
+            )}
+          </span>
           <span className="reflect-log-state">{state.label}</span>
         </span>
-        {entry.title     && <strong className="reflect-log-title">{entry.title}</strong>}
-        {entry.content   && <span className="reflect-log-body">{entry.content}</span>}
+        {entry.title       && <strong className="reflect-log-title">{entry.title}</strong>}
+        {entry.content     && <span className="reflect-log-body">{entry.content}</span>}
         {entry.mentalState && <span className="reflect-log-mental">{entry.mentalState}</span>}
-
-        {expanded && (
-          <div
-            className="tl-edit-fields"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+        <span className="reflect-log-swipe-hints">
+          <button
+            type="button"
+            className="reflect-log-swipe-hint--left"
+            onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
+            aria-label="Edit entry"
           >
-            <input
-              className="tl-edit-title"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="Title..."
-            />
-            <textarea
-              className="tl-edit-body"
-              value={editBody}
-              onChange={(e) => setEditBody(e.target.value)}
-              rows={4}
-            />
-            <div className="tl-edit-meta">
-              <span className="tl-edit-stats">
-                <span className="tl-edit-mood-mini">
-                  <span className="tl-edit-mood-mini-dot" />
-                  {state.label}
-                </span>
-                {entry.clarity != null && <span>Clarity · {entry.clarity}</span>}
-                {entry.mentalState     && <span>{entry.mentalState}</span>}
-              </span>
-              <span className="tl-edit-actions">
-                <button
-                  type="button"
-                  className="tl-edit-btn delete"
-                  onClick={(e) => { e.stopPropagation(); onDelete(entry._id); }}
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  className="tl-edit-btn save"
-                  onClick={(e) => { e.stopPropagation(); handleSave(); }}
-                >
-                  Save
-                </button>
-              </span>
-            </div>
-            <p className="tl-edit-hint">Editing in place. Your draft above is untouched.</p>
-          </div>
-        )}
+            ✎ edit
+          </button>
+          <button
+            type="button"
+            className="reflect-log-swipe-hint--right"
+            onClick={(e) => { e.stopPropagation(); onConfirmDelete?.(); }}
+            aria-label="Delete entry"
+          >
+            delete ✕
+          </button>
+        </span>
       </span>
     </motion.article>
+  );
+}
+
+// ── EditEntryModal ─────────────────────────────────────────────────────────
+
+function EditEntryModal({ entry, onSave, onDelete, onClose }) {
+  const [editTitle, setEditTitle] = useState(entry?.title || "");
+  const [editBody,  setEditBody]  = useState(entry?.content || "");
+
+  const state = MOOD_TO_STATE[entry?.mood] ?? moodMeta(entry?.mood);
+
+  async function handleSave() {
+    await onSave(entry._id, {
+      title:   editTitle.trim() || "Untitled Note",
+      content: editBody.trim(),
+    });
+    onClose();
+  }
+
+  async function handleDelete() {
+    await onDelete(entry._id);
+    onClose();
+  }
+
+  return (
+    <motion.div
+      className="confirm-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="entry-edit-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit entry"
+        initial={{ opacity: 0, scale: 0.9, y: 18 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.93, y: 10 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        style={{ "--mood-color": state.color }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="entry-edit-modal-header">
+          <span className="entry-edit-modal-dot" />
+          <span className="entry-edit-modal-stamp">{formatEntryStamp(entry.createdAt)}</span>
+          <span className="reflect-log-state">{state.label}</span>
+        </div>
+        <input
+          name="entry-edit-title"
+          className="tl-edit-title"
+          value={editTitle}
+          onChange={(e) => setEditTitle(e.target.value)}
+          placeholder="Title..."
+          autoFocus
+        />
+        <textarea
+          name="entry-edit-body"
+          className="tl-edit-body"
+          value={editBody}
+          onChange={(e) => setEditBody(e.target.value)}
+          rows={6}
+        />
+        <div className="tl-edit-meta">
+          <span className="tl-edit-stats">
+            {entry.mentalState && <span>{entry.mentalState}</span>}
+            {entry.clarity != null && <span>Clarity · {entry.clarity}</span>}
+          </span>
+          <span className="tl-edit-actions">
+            <button type="button" className="tl-edit-btn delete" onClick={handleDelete}>Delete</button>
+            <button type="button" className="tl-edit-btn save"   onClick={handleSave}>Save</button>
+          </span>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── ConfirmDeleteEntryDialog ───────────────────────────────────────────────
+
+function ConfirmDeleteEntryDialog({ open, onConfirm, onCancel }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="confirm-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={onCancel}
+        >
+          <motion.div
+            className="confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-entry-title"
+            initial={{ opacity: 0, scale: 0.88, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="confirm-entry-title" className="confirm-dialog-title">Delete entry?</h3>
+            <p className="confirm-dialog-body">This note will be permanently removed.</p>
+            <div className="confirm-dialog-actions">
+              <button type="button" className="confirm-btn confirm-btn--cancel" onClick={onCancel}>Cancel</button>
+              <button type="button" className="confirm-btn confirm-btn--delete" onClick={onConfirm}>Delete</button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ── ConfirmDeleteDialog ────────────────────────────────────────────────────
+
+function ConfirmDeleteDialog({ folder, onMoveToAll, onDeleteAll, onCancel }) {
+  return (
+    <AnimatePresence>
+      {folder && (
+        <>
+          <motion.div
+            className="confirm-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={onCancel}
+          >
+          <motion.div
+            className="confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            initial={{ opacity: 0, scale: 0.88, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="confirm-dialog-title" className="confirm-dialog-title">
+              Delete folder?
+            </h3>
+            <p className="confirm-dialog-body">
+              <strong>{folder.name}</strong> will be removed. What should happen to the notes inside?
+            </p>
+            <div className="confirm-dialog-actions">
+              <button
+                type="button"
+                className="confirm-btn confirm-btn--cancel"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="confirm-btn confirm-btn--move"
+                onClick={onMoveToAll}
+              >
+                Move to All
+              </button>
+              <button
+                type="button"
+                className="confirm-btn confirm-btn--delete"
+                onClick={onDeleteAll}
+              >
+                Delete all
+              </button>
+            </div>
+          </motion.div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function Journal() {
-  const [showMeta,    setShowMeta]    = useState(false);
-  const [expandedId,  setExpandedId]  = useState(null);
-  const [fabOpen,     setFabOpen]     = useState(false);
-  const editorRef = useRef(null);
-  const titleRef  = useRef(null);
+  const [showMeta,           setShowMeta]           = useState(false);
+  const [expandedId,         setExpandedId]         = useState(null);
+  const [fabOpen,            setFabOpen]            = useState(false);
+  const [contextFolder,       setContextFolder]       = useState(null);
+  const [confirmDeleteFolder, setConfirmDeleteFolder] = useState(null);
+  const [holdingFolderId,     setHoldingFolderId]     = useState(null);
+  const [managingFolders,     setManagingFolders]     = useState(false);
+  const [editingId,           setEditingId]           = useState(null);
+  const [revealedSwipe,       setRevealedSwipe]       = useState(null);
+  const [confirmDeleteEntryId, setConfirmDeleteEntryId] = useState(null);
+  const editorRef       = useRef(null);
+  const titleRef        = useRef(null);
+  const longPressTimer  = useRef(null);
+  const didLongPress    = useRef(false);
 
   const {
     entries,
@@ -256,15 +431,77 @@ export default function Journal() {
     refetch,
   } = useJournalContext();
 
-  const groupedEntries = useMemo(
-    () => groupEntriesByDate(filteredEntries),
-    [filteredEntries]
+  const editingEntry = useMemo(
+    () => (editingId ? entries.find((e) => e._id === editingId) ?? null : null),
+    [editingId, entries]
   );
+
+  const folderMap = useMemo(() => {
+    const m = {};
+    folders.forEach((f) => { m[f.id] = f.name; });
+    return m;
+  }, [folders]);
+
+  const groupedEntries = useMemo(() => {
+    const sorted = [...filteredEntries].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    return groupEntriesByDate(sorted);
+  }, [filteredEntries]);
 
   useEffect(() => {
     stopEditing();
     // Keep the compose card additive if the old edit flow left state behind.
   }, []);
+
+  // Dismiss context menu on any tap outside it
+  useEffect(() => {
+    if (!contextFolder) return;
+    function close() { setContextFolder(null); }
+    const t = setTimeout(() => {
+      document.addEventListener("pointerdown", close, { once: true });
+    }, 80);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [contextFolder]);
+
+  function startFolderLongPress(folder) {
+    if (managingFolders) return;
+    didLongPress.current = false;
+    setHoldingFolderId(folder.id);
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      setHoldingFolderId(null);
+      setContextFolder(folder);
+    }, 550);
+  }
+
+  function cancelFolderLongPress() {
+    clearTimeout(longPressTimer.current);
+    setHoldingFolderId(null);
+  }
+
+  function handleFolderClick(folder) {
+    if (didLongPress.current) { didLongPress.current = false; return; }
+    setActiveFolderId(folder.id);
+    setContextFolder(null);
+  }
+
+  function handleConfirmedDeleteFolder() {
+    if (!confirmDeleteFolder) return;
+    handleDeleteFolder(confirmDeleteFolder.id);
+    setConfirmDeleteFolder(null);
+  }
+
+  async function handleConfirmedDeleteFolderAndNotes() {
+    if (!confirmDeleteFolder) return;
+    const folderEntries = entries.filter((e) => e.folder === confirmDeleteFolder.id);
+    await Promise.all(folderEntries.map((e) => handleDeleteEntry(e._id)));
+    handleDeleteFolder(confirmDeleteFolder.id);
+    setConfirmDeleteFolder(null);
+  }
 
   function handleEntryToggle(entryId) {
     setExpandedId((prev) => (prev === entryId ? null : entryId));
@@ -321,8 +558,15 @@ export default function Journal() {
         {/* ── Compose card ── */}
         <section className="journal-top-controls">
           <div className="journal-folders">
-            <div className="journal-folders-header">
-              <h3>Folders</h3>
+            <div className="journal-folders-top">
+              <button
+                type="button"
+                className={`journal-manage-btn${managingFolders ? " journal-manage-btn--done" : ""}`}
+                onClick={() => setManagingFolders((v) => !v)}
+              >
+                {managingFolders ? "Done" : "Manage"}
+              </button>
+              <h3 className="journal-folders-title">Folders</h3>
               <button
                 className="journal-folder-add-btn"
                 type="button"
@@ -362,28 +606,72 @@ export default function Journal() {
 
               {folders.map((folder) => {
                 const count = entries.filter((e) => e.folder === folder.id).length;
+                const isCtx = contextFolder?.id === folder.id;
                 return (
                   <div key={folder.id} className="journal-folder-row">
                     <button
                       type="button"
-                      className={`journal-folder-item ${activeFolderId === folder.id ? "active" : ""}`}
-                      onClick={() => setActiveFolderId(folder.id)}
+                      className={[
+                        "journal-folder-item",
+                        activeFolderId === folder.id ? "active" : "",
+                        isCtx ? "journal-folder-item--ctx" : "",
+                        holdingFolderId === folder.id ? "journal-folder-item--holding" : "",
+                      ].filter(Boolean).join(" ")}
+                      onPointerDown={() => startFolderLongPress(folder)}
+                      onPointerUp={cancelFolderLongPress}
+                      onPointerLeave={cancelFolderLongPress}
+                      onPointerCancel={cancelFolderLongPress}
+                      onClick={() => handleFolderClick(folder)}
                     >
                       <span>{folder.name}</span>
                       <span className="journal-folder-count">{count}</span>
                     </button>
-                    <button
-                      type="button"
-                      className="journal-folder-delete-btn"
-                      onClick={() => handleDeleteFolder(folder.id)}
-                      aria-label={`Delete ${folder.name}`}
-                    >
-                      x
-                    </button>
+                    <AnimatePresence>
+                      {managingFolders && (
+                        <motion.button
+                          type="button"
+                          className="journal-folder-delete-btn"
+                          aria-label={`Delete ${folder.name}`}
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ duration: 0.14, ease: "easeOut" }}
+                          onClick={() => setConfirmDeleteFolder(folder)}
+                        >
+                          ×
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
                   </div>
                 );
               })}
             </div>
+
+            <AnimatePresence>
+              {contextFolder && (
+                <motion.div
+                  className="journal-folder-ctx"
+                  initial={{ opacity: 0, y: -6, scaleY: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                  exit={{ opacity: 0, y: -4, scaleY: 0.94 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  style={{ transformOrigin: "top center" }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <span className="journal-folder-ctx-label">{contextFolder.name}</span>
+                  <button
+                    type="button"
+                    className="journal-folder-ctx-btn"
+                    onClick={() => {
+                      setConfirmDeleteFolder(contextFolder);
+                      setContextFolder(null);
+                    }}
+                  >
+                    Delete folder
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <input
@@ -550,14 +838,19 @@ export default function Journal() {
                     {group.entries.map((entry) => (
                       <SwipeRow
                         key={entry._id}
-                        onDelete={() => handleDeleteEntry(entry._id)}
+                        entryId={entry._id}
+                        revealedSwipe={revealedSwipe}
+                        onReveal={setRevealedSwipe}
+                        onDelete={() => setConfirmDeleteEntryId(entry._id)}
+                        onEdit={() => setEditingId(entry._id)}
                       >
                         <TimelineEntry
                           entry={entry}
                           expanded={expandedId === entry._id}
                           onToggle={() => handleEntryToggle(entry._id)}
-                          onDelete={handleDeleteEntry}
-                          handleUpdateEntry={handleUpdateEntry}
+                          onEdit={() => setEditingId(entry._id)}
+                          onConfirmDelete={() => setConfirmDeleteEntryId(entry._id)}
+                          folderName={entry.folder ? folderMap[entry.folder] : null}
                         />
                       </SwipeRow>
                     ))}
@@ -568,6 +861,31 @@ export default function Journal() {
           </div>
         </section>
       </motion.div>
+
+      <ConfirmDeleteDialog
+        folder={confirmDeleteFolder}
+        onMoveToAll={handleConfirmedDeleteFolder}
+        onDeleteAll={handleConfirmedDeleteFolderAndNotes}
+        onCancel={() => setConfirmDeleteFolder(null)}
+      />
+
+      <ConfirmDeleteEntryDialog
+        open={!!confirmDeleteEntryId}
+        onConfirm={() => { handleDeleteEntry(confirmDeleteEntryId); setConfirmDeleteEntryId(null); }}
+        onCancel={() => setConfirmDeleteEntryId(null)}
+      />
+
+      <AnimatePresence>
+        {editingEntry && (
+          <EditEntryModal
+            key={editingEntry._id}
+            entry={editingEntry}
+            onSave={handleUpdateEntry}
+            onDelete={handleDeleteEntry}
+            onClose={() => setEditingId(null)}
+          />
+        )}
+      </AnimatePresence>
 
       <motion.button
         className={`task-fab${fabOpen ? " task-fab--open" : ""}`}

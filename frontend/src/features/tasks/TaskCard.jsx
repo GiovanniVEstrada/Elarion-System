@@ -45,6 +45,7 @@ export default function TaskCard() {
       <form className="task-form task-form--stacked" onSubmit={handleAddTask}>
         <div className="task-form-row">
           <input
+            name="task-new"
             className="task-input"
             type="text"
             placeholder="Add a new action..."

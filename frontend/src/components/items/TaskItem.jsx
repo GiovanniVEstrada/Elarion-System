@@ -196,6 +196,7 @@ export default function TaskItem({ task, onToggle, onDelete, onEdit, onRate }) {
       <label className="task-left">
         <input
           type="checkbox"
+          name="task-completed"
           checked={task.completed}
           onChange={handleCheck}
         />

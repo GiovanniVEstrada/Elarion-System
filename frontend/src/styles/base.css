@@ -78,6 +78,8 @@ body {
   background-image:
     radial-gradient(circle at 12% 10%, rgba(var(--orb-a-rgb), 0.08), transparent 22%),
     radial-gradient(circle at 88% 12%, rgba(var(--accent-rgb), 0.10), transparent 20%),
+    radial-gradient(circle at 50% 50%, rgba(var(--orb-a-rgb), 0.055), transparent 32%),
+    radial-gradient(circle at 50% 68%, rgba(var(--orb-a-rgb), 0.14), transparent 28%),
     radial-gradient(circle at 50% 85%, rgba(var(--orb-b-rgb), 0.08), transparent 24%),
     linear-gradient(180deg, var(--sky-0) 0%, var(--sky-48) 48%, var(--sky-100) 100%);
   background-size: cover;
