@@ -64,41 +64,7 @@ Earlier sprints: glass CSS migration complete across all tracked files, dead CSS
   - Both Login and Register cards use `tide-panel auth-card` — glass handled by shared class.
 - **Desktop navigation decision:** Keep the unified top-chrome + drawer across all screen sizes for V1. No dedicated desktop sidebar until post-App Store if needed.
 
-### Sprint 5 — UI Polish & Mobile Bug Fixes (2026-05-12)
-
-- **`layout.css` — app shell background redesign:**
-  - `width: 100%` on `.app-mobile-frame` (was `min(100%, 430px)`) — fills edge-to-edge with no side gaps.
-  - Gradient reworked to start `transparent` at the top ~22% so the top-chrome buttons float on the ambient body gradient rather than on a filled panel. Darker background fades in below the nav area for content readability.
-  - Removed `box-shadow: inset 0 1px 0` which created a visible top border.
-- **Calendar grid overflow fix (`calendar.css` + `Calendar.jsx`):**
-  - Added `min-width: 0` and `overflow: hidden` to `.cal-day` — the critical fix that prevents CSS grid columns from growing beyond `1fr` when cell content overflows.
-  - Added `max-width: 100%` + `overflow: hidden` to `.cal-event-indicators`.
-  - Capped event dot indicator to 3 dots maximum (2 events + 1 task, or 1 event + 2 tasks).
-  - Removed the `+N` overflow count badge entirely — prevented layout blowout on all phone sizes when a day had many events.
-- **Journal page — past entries log moved from Insights:**
-  - `reflect-log-section` (swipe-to-delete entry log) moved from `Reflect.jsx` to `Journal.jsx`.
-  - Shows **all** journal entries (no mood filter), sorted newest-first.
-  - Entries with a mood score still display the numeric score + state label on the right.
-  - `LogEntry` component now lives in `Journal.jsx`; `Reflect.jsx` cleaned of `LogEntry`, `logEntries`, `deleteEntry`, and `getMoodLabel`/`getMoodScoreLabel` imports.
-
-### Sprint 4 — Android / Cross-Device Sizing Pass (2026-05-12)
-
-- **`index.html`:** Added `viewport-fit=cover` to viewport meta (enables `env(safe-area-inset-*)` on Android notch/cutout devices) and `theme-color` meta (`#030b14`) for PWA chrome coloring.
-- **`base.css`:** Added `-webkit-text-size-adjust: 100%` + `text-size-adjust: 100%` (prevents Android/iOS from bumping font sizes in landscape); `overscroll-behavior-y: none` on `body` (stops pull-to-refresh in PWA standalone); `touch-action: manipulation` on interactive elements (removes 300ms tap delay on Android without disabling pinch-zoom).
-- **`layout.css`:**
-  - `.app-mobile-frame` — `min-height: 100dvh` (was `100vh`; `dvh` accounts for Android Chrome's collapsing address bar).
-  - `.side-drawer` — padding-bottom now uses `max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))` for gesture navigation bar clearance.
-  - New `≤380px` breakpoint — reduces `.app-mobile-frame` padding to 16px and `.app-top-chrome` width to `calc(100% - 32px)` for budget Android phones (Galaxy A-series, Moto G).
-- **`auth.css`:** `.auth-shell` `min-height` changed from `100vh` → `100dvh`.
-- **`calendar.css`:** New `≤380px` breakpoint — reduces `.calendar-grid` gap to 2px and sets `.cal-day min-height: 44px` so day cells meet the 44dp touch target on 360px screens.
-- **`items.css`:** Added explicit `min-height: 44px` to `.tasks-filter-btn, .calendar-filter-btn`; new `≤380px` breakpoint increases `.habit-icon-btn` to 38×38 and reduces hero title clamp to `clamp(2rem, 10vw, 2.8rem)`.
-- **`vite.config.js`:** Fixed all icon references — `pwa-192x192.png` → `pwa-192x192.jpg`, `pwa-512x512.png` → `pwa-512x512.jpg`, type changed to `image/jpeg`. Removed non-existent `pwa-512x512-maskable.png` (flagged in TODO comment — needed for Play Store adaptive icons).
-- **`PageShell.jsx`:** Removed dead `feature-page` class that had no corresponding CSS.
-
-**Remaining for Play Store release:**
-- A proper `pwa-512x512-maskable.png` (PNG, purpose: maskable) needs to be created — this is required for Android adaptive icons on Play Store.
-
-### Sprint 3 — Glass Migration Complete + Route Tests (2026-05-12)
+  ### Sprint 3 — Glass Migration Complete + Route Tests (2026-05-12)
 
 - **Glass CSS migration complete:**
   - `items.css` `.habit-card` — glass stripped; habit items now use `glass-card habit-card` in JSX.
@@ -117,6 +83,45 @@ Earlier sprints: glass CSS migration complete across all tracked files, dead CSS
   - Calendar: create, list, update, delete, unauthenticated 401, missing date rejection.
   - Reflections: create/upsert, list, patch by date, unauthenticated 401, missing date rejection.
 - **Onboarding reviewed:** default habits (`Morning journal`, `Daily walk`, `Read before bed`) and focus-area habit map confirmed aligned with V0.2.0 direction.
+
+### Sprint 4 — Android / Cross-Device Sizing Pass (2026-05-12)
+
+- **`index.html`:** Added `viewport-fit=cover` to viewport meta (enables `env(safe-area-inset-*)` on Android notch/cutout devices) and `theme-color` meta (`#030b14`) for PWA chrome coloring.
+- **`base.css`:** Added `-webkit-text-size-adjust: 100%` + `text-size-adjust: 100%` (prevents Android/iOS from bumping font sizes in landscape); `overscroll-behavior-y: none` on `body` (stops pull-to-refresh in PWA standalone); `touch-action: manipulation` on interactive elements (removes 300ms tap delay on Android without disabling pinch-zoom).
+- **`layout.css`:**
+  - `.app-mobile-frame` — `min-height: 100dvh` (was `100vh`; `dvh` accounts for Android Chrome's collapsing address bar).
+  - `.side-drawer` — padding-bottom now uses `max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px))` for gesture navigation bar clearance.
+  - New `≤380px` breakpoint — reduces `.app-mobile-frame` padding to 16px and `.app-top-chrome` width to `calc(100% - 32px)` for budget Android phones (Galaxy A-series, Moto G).
+- **`auth.css`:** `.auth-shell` `min-height` changed from `100vh` → `100dvh`.
+- **`calendar.css`:** New `≤380px` breakpoint — reduces `.calendar-grid` gap to 2px and sets `.cal-day min-height: 44px` so day cells meet the 44dp touch target on 360px screens.
+- **`items.css`:** Added explicit `min-height: 44px` to `.tasks-filter-btn, .calendar-filter-btn`; new `≤380px` breakpoint increases `.habit-icon-btn` to 38×38 and reduces hero title clamp to `clamp(2rem, 10vw, 2.8rem)`.
+- **`vite.config.js`:** Fixed all icon references — `pwa-192x192.png` → `pwa-192x192.jpg`, `pwa-512x512.png` → `pwa-512x512.jpg`, type changed to `image/jpeg`. Removed non-existent `pwa-512x512-maskable.png` (flagged in TODO comment — needed for Play Store adaptive icons).
+- **`PageShell.jsx`:** Removed dead `feature-page` class that had no corresponding CSS.
+
+### Sprint 5 — UI Polish & Mobile Bug Fixes (2026-05-12)
+
+- **`layout.css` — app shell background redesign:**
+  - `width: 100%` on `.app-mobile-frame` (was `min(100%, 430px)`) — fills edge-to-edge with no side gaps.
+  - Gradient reworked to start `transparent` at the top ~22% so the top-chrome buttons float on the ambient body gradient rather than on a filled panel. Darker background fades in below the nav area for content readability.
+  - Removed `box-shadow: inset 0 1px 0` which created a visible top border.
+- **Calendar grid overflow fix (`calendar.css` + `Calendar.jsx`):**
+  - Added `min-width: 0` and `overflow: hidden` to `.cal-day` — the critical fix that prevents CSS grid columns from growing beyond `1fr` when cell content overflows.
+  - Added `max-width: 100%` + `overflow: hidden` to `.cal-event-indicators`.
+  - Capped event dot indicator to 3 dots maximum (2 events + 1 task, or 1 event + 2 tasks).
+  - Removed the `+N` overflow count badge entirely — prevented layout blowout on all phone sizes when a day had many events.
+- **Journal page — past entries log moved from Insights:**
+  - `reflect-log-section` (swipe-to-delete entry log) moved from `Reflect.jsx` to `Journal.jsx`.
+  - Shows **all** journal entries (no mood filter), sorted newest-first.
+  - Entries with a mood score still display the numeric score + state label on the right.
+  - `LogEntry` component now lives in `Journal.jsx`; `Reflect.jsx` cleaned of `LogEntry`, `logEntries`, `deleteEntry`, and `getMoodLabel`/`getMoodScoreLabel` imports.
+
+
+
+
+**Remaining for Play Store release:**
+- A proper `pwa-512x512-maskable.png` (PNG, purpose: maskable) needs to be created — this is required for Android adaptive icons on Play Store.
+
+
 
 ## High-Priority Remaining Work
 
@@ -304,5 +309,18 @@ Priority order for next session:
 7. Real-device testing pass.
 8. App Store preparation (maskable PNG icon, privacy policy, store listing).
 
+Notes:
 
 Figure out how notifications.
+
+too easy to delete folders for journal, make sure a pop up goes to ask if user is sure, and add a button if user wants a specific note to be added to a folder. in the all folder, the notes should have the name of the folder it is in except for if it was made in the 'all folder', and in chronological order. add swipe motion when swiping note to the right, allows user to edit note rather than clicking on it and what it is right now. change title when editing note font. make sure the title when editing is obvious to the user that the title is editable.
+
+thought to consider, pressing a button on the home page that shows the today, tomorrow, one week. 
+home screen, variant A today (hero) today + tomorrow tab will only show the time on the ribbon. then on the week option, it shows the days instead, and has bubbles on the days that shows a dropdown folder of their events/actions. to make it easier for user to see the information rather than all at once.
+
+also for the agenda-type-dot i want it to be specialized and have a slight glowing effect, and i want it to be different colors to what the type it is
+
+
+when adding an action, i want to have a priority of low medium and high. and i dont want to use red for it. maybe a different color.
+
+have to figure out how class="tide-ribbon-wrap" correlates to how busy the person is and how it scales up as more and more actions/events are added, or should it be an emotion center? i like the idea of it being a way to show how busy the person is.

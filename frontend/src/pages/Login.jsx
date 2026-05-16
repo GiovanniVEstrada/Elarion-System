@@ -89,6 +89,9 @@ export default function Login() {
           No account?{" "}
           <Link to="/register" className="auth-link">Create one</Link>
         </p>
+        <p className="auth-switch" style={{ fontSize: "0.76rem", opacity: 0.45 }}>
+          <Link to="/privacy" className="auth-link">Privacy Policy</Link>
+        </p>
       </motion.div>
     </div>
   );

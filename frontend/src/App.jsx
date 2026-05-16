@@ -24,6 +24,7 @@ const Register   = lazy(() => import("./pages/Register"));
 const Settings   = lazy(() => import("./pages/Settings"));
 const NotFound   = lazy(() => import("./pages/NotFound"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Privacy    = lazy(() => import("./pages/Privacy"));
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -106,6 +107,7 @@ export default function App() {
             {/* Public routes — no data providers mount here */}
             <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/privacy"  element={<Privacy />} />
 
             {/* Protected — providers only mount after auth is confirmed */}
             <Route

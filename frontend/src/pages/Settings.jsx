@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useHabitsContext } from "../context/HabitsContext";
@@ -249,6 +249,24 @@ export default function Settings() {
             </button>
           </motion.section>
         </div>
+
+        <motion.section
+          className="tide-panel settings-card"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.35 }}
+        >
+          <div className="settings-card-heading">
+            <p>Legal</p>
+            <h2>Privacy &amp; terms</h2>
+          </div>
+          <p className="settings-desc">
+            Read how Luren collects, uses, and protects your data.
+          </p>
+          <Link to="/privacy" className="settings-btn settings-btn--ghost">
+            Privacy Policy
+          </Link>
+        </motion.section>
 
         <motion.section
           className="tide-panel settings-card settings-card--danger"

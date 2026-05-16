@@ -105,6 +105,10 @@ export default function Register() {
           Already have an account?{" "}
           <Link to="/login" className="auth-link">Sign in</Link>
         </p>
+        <p className="auth-switch" style={{ fontSize: "0.76rem", opacity: 0.45 }}>
+          By creating an account you agree to our{" "}
+          <Link to="/privacy" className="auth-link">Privacy Policy</Link>
+        </p>
       </motion.div>
     </div>
   );

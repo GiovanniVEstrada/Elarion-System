@@ -6,6 +6,7 @@ const Habit = require("../models/Habit");
 const JournalEntry = require("../models/JournalEntry");
 const MoodEntry = require("../models/MoodEntry");
 const CalendarEvent = require("../models/CalendarEvent");
+const Reflection = require("../models/Reflection");
 const asyncHandler = require("../utils/asyncHandler");
 
 const generateToken = (id) =>
@@ -107,6 +108,7 @@ const deleteMe = asyncHandler(async (req, res) => {
     JournalEntry.deleteMany({ user: userId }),
     MoodEntry.deleteMany({ user: userId }),
     CalendarEvent.deleteMany({ user: userId }),
+    Reflection.deleteMany({ user: userId }),
     User.findByIdAndDelete(userId),
   ]);
 
