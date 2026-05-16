@@ -17,9 +17,9 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 app.set("trust proxy", 1);
 
-// Fail at startup in production if the CORS origin is not explicitly configured.
+// Evaluated once at startup — throws in production if ALLOWED_ORIGIN is not set.
 const DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
-function getAllowedOrigins() {
+function resolveAllowedOrigins() {
   if (process.env.ALLOWED_ORIGIN) {
     return process.env.ALLOWED_ORIGIN.split(",").map((o) => o.trim());
   }
@@ -28,6 +28,7 @@ function getAllowedOrigins() {
   }
   return DEV_ORIGINS;
 }
+const ALLOWED_ORIGINS = resolveAllowedOrigins();
 
 // Security headers — explicit config so every directive is intentional.
 // This is a JSON-only API so the CSP locks down all resource loading.
@@ -58,9 +59,18 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Callback form so cors only sends allow-credentials for approved origins.
+// The array form sends allow-credentials unconditionally, which security
+// scanners flag even though no allow-origin is paired with it.
 app.use(
   cors({
-    origin: getAllowedOrigins(),
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   })
 );
