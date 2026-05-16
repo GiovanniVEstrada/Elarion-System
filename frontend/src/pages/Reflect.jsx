@@ -7,6 +7,7 @@ import { useJournalContext } from "../context/JournalContext";
 import { useTasksContext } from "../context/TasksContext";
 import PageShell from "../components/layout/PageShell";
 import MoodTideChart from "../components/MoodTideChart";
+import useInsights from "../hooks/useInsights";
 
 const MOOD_SCORE = { great: 10, good: 7.5, neutral: 5, bad: 2.5, awful: 1 };
 
@@ -99,11 +100,38 @@ function patternSubtitle(pattern) {
   return "Mood tracked as a flowing line. Log more days to sharpen the signal.";
 }
 
+// Derives a pattern string from cross-source correlation data returned by
+// /api/insights/correlations. Returns null if data is insufficient so the
+// caller can fall back to the local week-only detectPattern.
+function buildCorrelationPattern(correlations) {
+  if (!correlations || correlations.daysAnalyzed < 7) return null;
+
+  const { habitVsMood, taskVsMood, clarityVsMood } = correlations;
+
+  if (habitVsMood.direction === "positive" && habitVsMood.moodOnHighHabitDays != null) {
+    const delta = (habitVsMood.moodOnHighHabitDays - habitVsMood.moodOnLowHabitDays).toFixed(1);
+    return `Habit days lift your mood by ${delta} pts on average.`;
+  }
+  if (taskVsMood.direction === "positive" && taskVsMood.moodOnHighTaskDays != null) {
+    const delta = (taskVsMood.moodOnHighTaskDays - taskVsMood.moodOnLowTaskDays).toFixed(1);
+    return `Getting more done tracks with a +${delta} mood lift.`;
+  }
+  if (clarityVsMood.direction === "positive" && clarityVsMood.moodWhenHighClarity != null) {
+    return "Your clearest journal days align with your highest mood scores.";
+  }
+  if (habitVsMood.direction === "negative" && habitVsMood.moodOnHighHabitDays != null) {
+    return "Your mood pattern doesn't follow the usual habit rhythm — something else is driving it.";
+  }
+
+  return null;
+}
+
 export default function Reflect() {
   const { moods }                       = useMoodsContext();
   const { reflections }                 = useReflectionsContext();
   const { entries: journalEntries }     = useJournalContext();
   const { tasks }                       = useTasksContext();
+  const { correlations, dayOfWeek, loading: insightsLoading } = useInsights();
 
   const weekStart     = useMemo(() => startOfWeek(), []);
   const nextWeekStart = useMemo(() => new Date(weekStart.getTime() + 7 * MS_DAY), [weekStart]);
@@ -125,8 +153,18 @@ export default function Reflect() {
     lastWeekMoods.map((e) => MOOD_SCORE[e.mood]).filter((s) => s != null)
   );
   const delta         = avgMood != null && lastAvg != null ? avgMood - lastAvg : null;
-  const pattern       = detectPattern(weekData);
   const journalStreak = detectStreak(journalEntries);
+
+  const correlationPattern = useMemo(() => buildCorrelationPattern(correlations), [correlations]);
+  const pattern            = correlationPattern ?? detectPattern(weekData);
+  const patternIsFromApi   = correlationPattern !== null;
+
+  // Reorder API days (Sun=0…Sat=6) to display Mon-first: Mon Tue Wed Thu Fri Sat Sun
+  const dowDays = useMemo(() => {
+    if (!dayOfWeek?.days?.length) return [];
+    const d = dayOfWeek.days;
+    return [...d.slice(1), d[0]];
+  }, [dayOfWeek]);
 
   return (
     <PageShell>
@@ -192,8 +230,67 @@ export default function Reflect() {
 
           <div className="glass-card reflect-pattern-card">
             <p className="reflect-pattern-kicker">Pattern Noticed</p>
-            <p className="reflect-pattern-text">{pattern || "Patterns surface with more time."}</p>
+            {insightsLoading ? (
+              <p className="reflect-pattern-text reflect-pattern-text--loading">Reading the signal…</p>
+            ) : (
+              <>
+                <p className="reflect-pattern-text">{pattern || "Patterns surface with more time."}</p>
+                {patternIsFromApi && (
+                  <p className="reflect-pattern-source">
+                    {correlations.daysAnalyzed}-day cross-source correlation
+                  </p>
+                )}
+              </>
+            )}
           </div>
+
+          {!insightsLoading && dayOfWeek && !dayOfWeek.insufficientData && (
+            <motion.div
+              className="glass-card reflect-dow-card"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.18, duration: 0.35 }}
+            >
+              <p className="reflect-pattern-kicker">Peak Day</p>
+              <div className="reflect-dow-header">
+                <p className="reflect-dow-best-name">
+                  {dayOfWeek.bestDay.day}
+                  <span className="reflect-dow-best-score">
+                    {dayOfWeek.bestDay.avgMood.toFixed(1)} / 5
+                  </span>
+                </p>
+              </div>
+              <div className="reflect-dow-chart">
+                {dowDays.map((d) => {
+                  const isBest  = dayOfWeek.bestDay?.dow  === d.dow;
+                  const isWorst = dayOfWeek.worstDay?.dow === d.dow;
+                  const heightPct = d.avgMood ? (d.avgMood / 5) * 100 : 0;
+                  const barClass = isBest  ? "reflect-dow-bar--best"
+                                 : isWorst ? "reflect-dow-bar--worst"
+                                 : d.avgMood ? "reflect-dow-bar--normal"
+                                 : "reflect-dow-bar--empty";
+                  return (
+                    <div key={d.dow} className="reflect-dow-col">
+                      <div className="reflect-dow-track">
+                        <div
+                          className={`reflect-dow-bar ${barClass}`}
+                          style={{ height: `${heightPct || 8}%` }}
+                        />
+                      </div>
+                      <span className={`reflect-dow-label${isBest ? " reflect-dow-label--best" : ""}`}>
+                        {d.day[0]}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {dayOfWeek.worstDay && (
+                <p className="reflect-dow-worst-note">
+                  Lowest on {dayOfWeek.worstDay.day} · {dayOfWeek.worstDay.avgMood.toFixed(1)} avg
+                </p>
+              )}
+            </motion.div>
+          )}
 
           <div className="reflect-signal-strip">
             <span>{thisWeekMoods.length} mood logs</span>

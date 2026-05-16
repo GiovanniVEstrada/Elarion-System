@@ -503,6 +503,114 @@ const getMonthlySummary = asyncHandler(async (req, res) => {
   });
 });
 
+const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+// GET /api/insights/day-of-week
+// Returns avg mood, task completions, and habit completions per day of week
+// over the last 90 days, plus best and worst day by mood.
+const getDayOfWeekInsights = asyncHandler(async (req, res) => {
+  const uid = req.user._id;
+  const ninetyDaysAgo = new Date(Date.now() - 90 * DAY_MS);
+
+  const [moods, habits, tasks] = await Promise.all([
+    MoodEntry.find({ user: uid, date: { $gte: ninetyDaysAgo } }).select("date mood"),
+    Habit.find({ user: uid }).select("completedDates"),
+    Task.find({ user: uid, completed: true, updatedAt: { $gte: ninetyDaysAgo } }).select("updatedAt"),
+  ]);
+
+  const moodByDow   = Array.from({ length: 7 }, () => []);
+  const tasksByDow  = Array(7).fill(0);
+  const habitsByDow = Array(7).fill(0);
+
+  for (const m of moods) {
+    const score = MOOD_SCORES[m.mood];
+    if (score != null) moodByDow[new Date(m.date).getDay()].push(score);
+  }
+  for (const t of tasks) {
+    tasksByDow[new Date(t.updatedAt).getDay()]++;
+  }
+  for (const h of habits) {
+    for (const d of h.completedDates) {
+      if (new Date(d) >= ninetyDaysAgo) habitsByDow[new Date(d).getDay()]++;
+    }
+  }
+
+  const days = DOW_NAMES.map((name, i) => {
+    const scores = moodByDow[i];
+    const avgMood = scores.length
+      ? Math.round(scores.reduce((s, v) => s + v, 0) / scores.length * 10) / 10
+      : null;
+    return { day: name, dow: i, avgMood, moodEntries: scores.length, tasksCompleted: tasksByDow[i], habitCompletions: habitsByDow[i] };
+  });
+
+  const qualified = days.filter((d) => d.avgMood !== null && d.moodEntries >= 2);
+  const bestDay   = qualified.length ? qualified.reduce((b, d) => d.avgMood > b.avgMood ? d : b) : null;
+  const worstDay  = qualified.length ? qualified.reduce((w, d) => d.avgMood < w.avgMood ? d : w) : null;
+
+  res.status(200).json({
+    success: true,
+    data: { days, bestDay, worstDay, insufficientData: qualified.length < 2 },
+  });
+});
+
+// GET /api/insights/habit-mood
+// For each active habit, computes avg mood on completion days vs all other days
+// over the last 90 days. Sorted by absolute mood delta descending.
+const getHabitMoodCorrelation = asyncHandler(async (req, res) => {
+  const uid = req.user._id;
+  const ninetyDaysAgo = new Date(Date.now() - 90 * DAY_MS);
+
+  const [habits, moods] = await Promise.all([
+    Habit.find({ user: uid, active: true }).select("name completedDates"),
+    MoodEntry.find({ user: uid, date: { $gte: ninetyDaysAgo } }).select("date mood"),
+  ]);
+
+  const moodByDate = new Map();
+  for (const m of moods) {
+    moodByDate.set(new Date(m.date).toISOString().slice(0, 10), MOOD_SCORES[m.mood] ?? 3);
+  }
+
+  const results = [];
+
+  for (const habit of habits) {
+    const completionDates = new Set(
+      habit.completedDates
+        .filter((d) => new Date(d) >= ninetyDaysAgo)
+        .map((d) => new Date(d).toISOString().slice(0, 10))
+    );
+
+    if (completionDates.size < 5) continue;
+
+    const onDays = [], offDays = [];
+    for (const [date, score] of moodByDate) {
+      (completionDates.has(date) ? onDays : offDays).push(score);
+    }
+
+    if (onDays.length < 3 || offDays.length < 3) continue;
+
+    const onAvg  = onDays.reduce((s, v) => s + v, 0) / onDays.length;
+    const offAvg = offDays.reduce((s, v) => s + v, 0) / offDays.length;
+    const delta  = Math.round((onAvg - offAvg) * 100) / 100;
+
+    results.push({
+      habitId: habit._id,
+      habitName: habit.name,
+      moodOnCompletionDays: Math.round(onAvg * 10) / 10,
+      moodOnOtherDays: Math.round(offAvg * 10) / 10,
+      delta,
+      completionCount: completionDates.size,
+      direction: Math.abs(delta) < 0.3 ? "neutral" : delta > 0 ? "positive" : "negative",
+    });
+  }
+
+  results.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+  res.status(200).json({
+    success: true,
+    data: { habits: results, daysAnalyzed: moodByDate.size },
+  });
+});
+
 module.exports = {
   getOverview,
   getProductivity,
@@ -513,4 +621,6 @@ module.exports = {
   getCorrelations,
   getWeeklySummary,
   getMonthlySummary,
+  getDayOfWeekInsights,
+  getHabitMoodCorrelation,
 };

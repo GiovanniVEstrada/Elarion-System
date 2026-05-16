@@ -426,7 +426,102 @@
   border-color: rgba(78, 205, 196, 0.44);
 }
 
-/* Week nudge — has past data but nothing this week */
+/* ── Day-of-week card ── */
+
+.reflect-dow-card {
+  padding: 18px;
+}
+
+.reflect-dow-header {
+  margin-bottom: 16px;
+}
+
+.reflect-dow-best-name {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.reflect-dow-best-score {
+  font-style: normal;
+  font-family: var(--sans, "Poppins", sans-serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent-teal, #4ecdc4);
+  margin-left: 10px;
+}
+
+.reflect-dow-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 72px;
+  margin-bottom: 10px;
+}
+
+.reflect-dow-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  gap: 6px;
+}
+
+.reflect-dow-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.reflect-dow-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  min-height: 4px;
+}
+
+.reflect-dow-bar--best {
+  background: var(--accent-teal, #4ecdc4);
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.38);
+}
+
+.reflect-dow-bar--worst {
+  background: rgba(255, 107, 107, 0.35);
+}
+
+.reflect-dow-bar--normal {
+  background: rgba(78, 205, 196, 0.22);
+}
+
+.reflect-dow-bar--empty {
+  background: rgba(255, 255, 255, 0.06);
+  min-height: 6px;
+}
+
+.reflect-dow-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8892a4);
+}
+
+.reflect-dow-label--best {
+  color: var(--accent-teal, #4ecdc4);
+}
+
+.reflect-dow-worst-note {
+  font-size: 0.78rem;
+  color: var(--text-muted, #8892a4);
+  margin: 4px 0 0;
+}
+
+/* ── Week nudge — has past data but nothing this week ── */
 
 .reflect-week-nudge {
   display: block;
