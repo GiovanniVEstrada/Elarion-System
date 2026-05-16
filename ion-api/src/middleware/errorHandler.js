@@ -11,7 +11,9 @@ const errorHandler = (err, req, res, next) => {
   }
 
   const status = err.statusCode || err.status || 500;
-  const message = err.message || "Internal Server Error";
+  // Only forward the error message for explicit app errors (4xx). Unexpected
+  // throws (DB failures, etc.) must not leak internal details to the client.
+  const message = status < 500 ? (err.message || "Request failed") : "Internal Server Error";
   res.status(status).json({ success: false, message, errors: err.errors || [] });
 };
 

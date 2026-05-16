@@ -17,6 +17,80 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 app.set("trust proxy", 1);
 
+// Fail at startup in production if the CORS origin is not explicitly configured.
+const DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
+function getAllowedOrigins() {
+  if (process.env.ALLOWED_ORIGIN) {
+    return process.env.ALLOWED_ORIGIN.split(",").map((o) => o.trim());
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ALLOWED_ORIGIN env var must be set in production");
+  }
+  return DEV_ORIGINS;
+}
+
+// Security headers — explicit config so every directive is intentional.
+// This is a JSON-only API so the CSP locks down all resource loading.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    referrerPolicy: { policy: "no-referrer" },
+  })
+);
+
+// Permissions-Policy is not included in Helmet — deny all browser features.
+app.use((_req, res, next) => {
+  res.setHeader(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+  );
+  next();
+});
+
+app.use(
+  cors({
+    origin: getAllowedOrigins(),
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+
+// Strip MongoDB operator keys from query params to prevent NoSQL query injection.
+// e.g. ?mood[$gt]= would otherwise become { mood: { $gt: "" } } in the filter.
+app.use((req, _res, next) => {
+  function sanitize(obj) {
+    if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+      for (const key of Object.keys(obj)) {
+        if (key.startsWith("$")) {
+          delete obj[key];
+        } else {
+          sanitize(obj[key]);
+        }
+      }
+    }
+  }
+  sanitize(req.query);
+  next();
+});
+
+// Prevent browsers and proxies from caching any API response.
+app.use("/api/", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
+
 // General API rate limiter — 100 requests per 15 minutes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -35,22 +109,12 @@ const authLimiter = rateLimit({
   message: { success: false, message: "Too many auth attempts, please try again later." },
 });
 
-app.use(helmet());
-const DEV_ORIGINS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN
-    ? process.env.ALLOWED_ORIGIN.split(",").map((o) => o.trim())
-    : DEV_ORIGINS,
-  credentials: true,
-}));
-app.use(express.json());
-
 // Apply rate limiters before route definitions
 app.use("/api/", apiLimiter);
 app.use("/api/auth/", authLimiter);
 
-app.get("/", (req, res) => {
-  res.json({ message: "Ion API is running." });
+app.get("/", (_req, res) => {
+  res.status(200).end();
 });
 
 app.use("/api/auth", authRoutes);
